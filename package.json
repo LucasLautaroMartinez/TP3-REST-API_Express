@@ -2,7 +2,7 @@
   "name": "tp3-rest-api_express",
   "version": "1.0.0",
   "description": "Aplicacion web fullstack desarrollada como continuacion del TP de React.",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon src/index.js",
@@ -20,14 +20,20 @@
     "url": "https://github.com/LucasLautaroMartinez/TP3-REST-API_Express/issues"
   },
   "homepage": "https://github.com/LucasLautaroMartinez/TP3-REST-API_Express#readme",
+  "engines": {
+    "node": ">=18"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "dependencies": {
     "@prisma/client": "^7.8.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "prisma": "^7.8.0"
+    "express": "^5.2.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "nodemon": "^3.1.14",
+    "prisma": "^7.8.0"
   }
 }
