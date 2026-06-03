@@ -1,26 +1,39 @@
 require("dotenv").config();
-
+const PORT = process.env.PORT || 3000;
+const gameRoutes = require("./routes/game.routes.js");
+//? ESTO DEBERIA DE MOVERSE A APP.JS
 const express = require("express");
 const cors = require("cors");
 
 const app = express();
 
-const PORT = process.env.PORT || 3000;
-
-
 // Middlewares
+
 app.use(cors());
 app.use(express.json());
 
 // Routes
 app.get("/api/health", (req, res) => {
-  res.status(200).json({
-    status: "ok",
-    message: "API funcionando correctamente",
-  });
+	res.status(200).json({
+		status: "ok",
+		message: "API funcionando correctamente",
+	});
 });
+
+// app.get("/games", async (req, res) => {
+// 	const games = await getGames();
+// 	res.status(200).json({
+// 		status: "ok",
+// 		message: games,
+// 	});
+// });
+
+app.use("/games", gameRoutes);
 
 // Server
 app.listen(PORT, () => {
-  console.log(`Servidor ejecutándose en puerto ${PORT}`);
+	console.log(`Servidor ejecutándose en puerto ${PORT}`);
 });
+
+module.exports = app;
+//? ESTO DEBERIA DE MOVERSE A APP.JS
