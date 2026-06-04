@@ -19,6 +19,7 @@ app.get("/api/health", (req, res) => {
 		message: "API funcionando correctamente",
 	});
 });
+app.use("/games", gameRoutes);
 
 // app.get("/games", async (req, res) => {
 // 	const games = await getGames();
