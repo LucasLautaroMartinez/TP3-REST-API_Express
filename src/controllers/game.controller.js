@@ -1,9 +1,18 @@
 const gameService = require("../services/game.service.js");
 
 async function getGames(req, res) {
-	const games = await gameService.getGames();
+	const { Title, Developer, cursor, limit } = req.query;
+	console.log(req.query);
 
-	res.json(games);
+	if (Title || Developer) {
+		getGameByFilter(req, res);
+	} else {
+		const result = await gameService.getGames(
+			parseInt(cursor),
+			parseInt(limit),
+		);
+		res.json(result);
+	}
 }
 
 async function getGameById(req, res) {
@@ -13,4 +22,21 @@ async function getGameById(req, res) {
 	res.json(game);
 }
 
-module.exports = { getGames, getGameById };
+async function getGameByFilter(req, res) {
+	const keys = ["title", "developer"];
+	const [key, value] = Object.entries(req.query)[0] || [];
+	if (!keys.includes(key.toLowerCase())) {
+		return console.log("MAL QUERY, NO TIENE NI TITLE NI DEVELOPER");
+	}
+	const condition = {
+		[key.toLowerCase()]: {
+			contains: value,
+			mode: "insensitive",
+		},
+	};
+
+	const gamesFiltered = await gameService.getGameByFilter(condition);
+	res.json(gamesFiltered);
+}
+
+module.exports = { getGames, getGameById, getGameByFilter };
