@@ -13,11 +13,7 @@ async function getGameById(req, res) {
 	res.json(game);
 }
 
-module.exports = { getGames, getGameById };
-const gameService = require("../services/game.service.js");
-
 async function updateGame(req, res) {
-	console.log(req);
 	const gameId = Number(req.params.id);
 	const data = req.body;
 	const updatedGame = await gameService.updateGame(gameId, data);
@@ -25,4 +21,4 @@ async function updateGame(req, res) {
 	res.json(updatedGame);
 }
 
-module.exports = { updateGame };
+module.exports = { getGames, getGameById, updateGame };

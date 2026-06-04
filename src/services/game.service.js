@@ -1,11 +1,10 @@
 const prisma = require("../prisma/prismaClient.js");
 
+const INCLUDE_OPTIONS = { genres: true, screenshots: true };
+
 async function getGames() {
 	const games = await prisma.game.findMany({
-		include: {
-			genres: true,
-			screenshots: true,
-		},
+		include: INCLUDE_OPTIONS,
 	});
 
 	return games;
@@ -16,29 +15,20 @@ async function getGameById(gameId) {
 		where: {
 			id: gameId,
 		},
-		include: {
-			genres: true,
-			screenshots: true,
-		},
+		include: INCLUDE_OPTIONS,
 	});
 
 	return game;
 }
 
-module.exports = { getGames, getGameById };
-const prisma = require("../prisma/prismaClient.js");
-
 async function updateGame(gameId, gameData) {
 	const updatedGame = await prisma.game.update({
 		where: { id: gameId },
 		data: gameData,
-		include: {
-			genres: true,
-			screenshots: true,
-		},
+		include: INCLUDE_OPTIONS,
 	});
 
 	return updatedGame;
 }
 
-module.exports = { updateGame };
+module.exports = { getGames, getGameById, updateGame };
