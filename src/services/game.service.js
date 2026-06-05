@@ -7,7 +7,6 @@ async function getGames() {
 			screenshots: true,
 		},
 	});
-
 	return games;
 }
 
@@ -21,12 +20,8 @@ async function getGameById(gameId) {
 			screenshots: true,
 		},
 	});
-
 	return game;
 }
-
-module.exports = { getGames, getGameById };
-const prisma = require("../prisma/prismaClient.js");
 
 async function updateGame(gameId, gameData) {
 	const updatedGame = await prisma.game.update({
@@ -37,8 +32,7 @@ async function updateGame(gameId, gameData) {
 			screenshots: true,
 		},
 	});
-
 	return updatedGame;
 }
 
-module.exports = { updateGame };
+module.exports = { getGames, getGameById, updateGame };
