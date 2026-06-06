@@ -8,14 +8,14 @@ datasource db {
 
 model Game {
   id          Int          @id @default(autoincrement())
-  title       String
+  Name        String
+  Rating      Int
+  Developer   String
+  Price       Float
+  ReleaseDate DateTime
+  Image       String
+  Description String
   isFavorite  Boolean      @default(false)
-  description String
-  developer   String
-  imageUrl    String
-  price       Float
-  rating      Int
-  releaseDate DateTime
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   screenshots Screenshot[]

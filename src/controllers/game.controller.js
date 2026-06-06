@@ -16,7 +16,6 @@ async function getGames(req, res) {
 async function getGameById(req, res) {
 	const gameId = Number(req.params.id);
 	const game = await gameService.getGameById(gameId);
-
 	res.json(game);
 }
 
@@ -24,7 +23,6 @@ async function updateGame(req, res) {
 	const gameId = Number(req.params.id);
 	const data = req.body;
 	const updatedGame = await gameService.updateGame(gameId, data);
-
 	res.json(updatedGame);
 }
 
