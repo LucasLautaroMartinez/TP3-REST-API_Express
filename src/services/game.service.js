@@ -2,6 +2,11 @@ const prisma = require("../prisma/prismaClient.js");
 
 const INCLUDE_OPTIONS = { genres: true, screenshots: true };
 
+/**
+ * @param {int} cursor
+ * @param {int} limit
+ * @returns {Object} { data: Object, nextCursor: int, hasMore: boolean }
+ */
 async function getGames(cursor = null, limit = 10) {
 	//* Cursor es algo de prisma, sirve para que el proximo paginado empieze desde el ultimo id recuperado
 	//* la respuesta contiene nextCursor para que las peticiones en el FE se hagan con nextCursor
@@ -23,6 +28,10 @@ async function getGames(cursor = null, limit = 10) {
 	};
 }
 
+/**
+ * @param {int} gameId
+ * @returns {Object}
+ */
 async function getGameById(gameId) {
 	const game = await prisma.game.findUnique({
 		where: {
@@ -34,6 +43,10 @@ async function getGameById(gameId) {
 	return game;
 }
 
+/**
+ * @param {Object} condition
+ * @returns {Object}
+ */
 async function getGameByFilter(condition) {
 	const gamesFiltered = await prisma.game.findMany({
 		where: condition,
@@ -42,6 +55,12 @@ async function getGameByFilter(condition) {
 
 	return gamesFiltered;
 }
+
+/**
+ * @param {int} gameId
+ * @param {Object} gameData
+ * @returns {Object}
+ */
 async function updateGame(gameId, gameData) {
 	const updatedGame = await prisma.game.update({
 		where: { id: gameId },

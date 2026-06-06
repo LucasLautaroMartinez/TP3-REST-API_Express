@@ -1,5 +1,9 @@
 const gameService = require("../services/game.service.js");
 
+/**
+ * @param {Object} req
+ * @param {Object} res
+ */
 async function getGames(req, res) {
 	const { Title, Developer } = req.query;
 	const cursor = req.query.cursor ? parseInt(req.query.cursor) : null;
@@ -13,6 +17,10 @@ async function getGames(req, res) {
 	}
 }
 
+/**
+ * @param {Object} req
+ * @param {Object} res
+ */
 async function getGameById(req, res) {
 	const gameId = Number(req.params.id);
 	const game = await gameService.getGameById(gameId);
@@ -20,14 +28,10 @@ async function getGameById(req, res) {
 	res.json(game);
 }
 
-async function updateGame(req, res) {
-	const gameId = Number(req.params.id);
-	const data = req.body;
-	const updatedGame = await gameService.updateGame(gameId, data);
-
-	res.json(updatedGame);
-}
-
+/**
+ * @param {Object} req
+ * @param {Object} res
+ */
 async function getGameByFilter(req, res) {
 	const keys = ["title", "developer"];
 	const [key, value] = Object.entries(req.query)[0] || [];
@@ -45,6 +49,18 @@ async function getGameByFilter(req, res) {
 
 	const gamesFiltered = await gameService.getGameByFilter(condition);
 	res.json(gamesFiltered);
+}
+
+/**
+ * @param {Object} req
+ * @param {Object} res
+ */
+async function updateGame(req, res) {
+	const gameId = Number(req.params.id);
+	const data = req.body;
+	const updatedGame = await gameService.updateGame(gameId, data);
+
+	res.json(updatedGame);
 }
 
 module.exports = { getGames, getGameById, getGameByFilter, updateGame };
