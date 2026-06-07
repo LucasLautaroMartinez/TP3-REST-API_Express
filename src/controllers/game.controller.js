@@ -3,7 +3,7 @@ const gameService = require("../services/game.service.js");
 async function getGames(req, res) {
 	const { Title, Developer } = req.query;
 	const cursor = req.query.cursor ? parseInt(req.query.cursor) : null;
-	const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+	const limit = req.query.limit ? parseInt(req.query.limit) : 100;
 
 	if (Title || Developer) {
 		getGameByFilter(req, res);

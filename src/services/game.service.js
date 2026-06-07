@@ -2,7 +2,7 @@ const prisma = require("../prisma/prismaClient.js");
 
 const INCLUDE_OPTIONS = { genres: true, screenshots: true };
 
-async function getGames(cursor = null, limit = 10) {
+async function getGames(cursor = null, limit = 100) {
 	//* Cursor es algo de prisma, sirve para que el proximo paginado empieze desde el ultimo id recuperado
 	//* la respuesta contiene nextCursor para que las peticiones en el FE se hagan con nextCursor
 	const games = await prisma.game.findMany({
