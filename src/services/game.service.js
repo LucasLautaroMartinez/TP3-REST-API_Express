@@ -39,7 +39,6 @@ async function getGameById(gameId) {
 		},
 		include: INCLUDE_OPTIONS,
 	});
-
 	return game;
 }
 
@@ -67,7 +66,6 @@ async function updateGame(gameId, gameData) {
 		data: gameData,
 		include: INCLUDE_OPTIONS,
 	});
-
 	return updatedGame;
 }
 

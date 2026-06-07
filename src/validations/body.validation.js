@@ -28,7 +28,7 @@ const validateBody = (body, schema) => {
 				continue;
 			}
 
-			// Valida strings no vacíos
+			// Valida strings no vacios
 			if (
 				rules.type === "string" &&
 				typeof value === "string" &&
@@ -53,12 +53,41 @@ const validateBody = (body, schema) => {
 			}
 		}
 
-		// Valida opciones limitadas
-		if (rules.allowedValues && Array.isArray(rules.allowedValues)) {
-			if (!rules.allowedValues.includes(value)) {
-				errors[field] =
-					`El campo '${field}' debe ser uno de: ${rules.allowedValues.join(", ")}`;
+		// Valida tipo array
+		if (rules.type === "array") {
+			// Verifica que sea un array
+			if (!Array.isArray(value)) {
+				errors[field] = `El campo '${field}' debe ser un array`;
 				continue;
+			}
+
+			// Verifica que no estr vacio si es requerido
+			if (rules.required && value.length === 0) {
+				errors[field] = `El campo '${field}' no puede estar vacío`;
+				continue;
+			}
+
+			// Valida cada elemento del array contra allowedValues
+			if (rules.allowedValues && Array.isArray(rules.allowedValues)) {
+				const invalidValues = value.filter(
+					(item) => !rules.allowedValues.includes(item),
+				);
+				if (invalidValues.length > 0) {
+					errors[field] =
+						`El campo '${field}' contiene valores no permitidos: ${invalidValues.join(", ")}. Valores permitidos: ${rules.allowedValues.join(", ")}`;
+					continue;
+				}
+			}
+		}
+
+		// Valida opciones limitadas para valores que no son array
+		if (!rules.type || rules.type !== "array") {
+			if (rules.allowedValues && Array.isArray(rules.allowedValues)) {
+				if (!rules.allowedValues.includes(value)) {
+					errors[field] =
+						`El campo '${field}' debe ser uno de: ${rules.allowedValues.join(", ")}`;
+					continue;
+				}
 			}
 		}
 
@@ -79,8 +108,6 @@ const validateBody = (body, schema) => {
 		message: isValid ? "Datos válidos" : "Datos inválidos, revise los errores",
 	};
 };
-
-module.exports = validateBody;
 
 // Ejemplo de un esquema que se quiera validar (games)
 

@@ -34,7 +34,6 @@ async function getGames(req, res) {
 async function getGameById(req, res) {
 	const gameId = await getId(req);
 	const game = await gameService.getGameById(gameId);
-
 	res.json(game);
 }
 
