@@ -83,6 +83,7 @@ async function updateGame(req, res) {
 async function updateGamePUT(req, res) {
 	const body = req.body;
 	console.log("El body es: ", body);
+	console.log("Campos del body:", Object.keys(req.body));
 	const { isValid, errors, message } = validateBody(body, gameSchema);
 	if (!isValid) {
 		return console.log(errors);

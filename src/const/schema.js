@@ -47,35 +47,39 @@ const gameSchema = {
 		required: false,
 		type: "boolean",
 	},
-	//! ESTO ESTÁ DESACTIVADO YA QUE HAY QUE MODIFICAR EL UPDATE
-	// genres: {
-	// 	required: true,
-	// 	type: "array",
-	// 	allowedValues: [
-	// 		"Action",
-	// 		"Adventure",
-	// 		"RPG",
-	// 		"Strategy",
-	// 		"Sports",
-	// 		"Racing",
-	// 		"Puzzle",
-	// 		"Horror",
-	// 		"Simulation",
-	// 	],
-	// 	validate: (value) => {
-	// 		if (!Array.isArray(value)) return "Genres must be an array";
-	// 		if (value.length === 0) return "At least one genre is required";
-	// 		return null;
-	// 	},
-	// },
-	// screenshots: {
-	// 	required: true,
-	// 	type: "array",
-	// 	validate: (value) => {
-	// 		if (value.length === 0) return "There has to be at least 1 screenshot";
-	// 		return null;
-	// 	},
-	// },
+	genres: {
+		required: true,
+		type: "array",
+		allowedValues: [
+			"Action",
+			"RPG",
+			"Shooter",
+			"Puzzle",
+			"Adventure",
+			"Indie",
+			"Platformer",
+			"Massively Multiplayer",
+			"Sports",
+			"Racing",
+			"Simulation",
+			"Casual",
+			"Strategy",
+			"Arcade",
+		],
+		validate: (value) => {
+			if (!Array.isArray(value)) return "Genres must be an array";
+			if (value.length === 0) return "At least one genre is required";
+			return null;
+		},
+	},
+	screenshots: {
+		required: true,
+		type: "array",
+		validate: (value) => {
+			if (value.length === 0) return "There has to be at least 1 screenshot";
+			return null;
+		},
+	},
 };
 
 module.exports = gameSchema;

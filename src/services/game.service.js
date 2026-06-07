@@ -3,6 +3,47 @@ const prisma = require("../prisma/prismaClient.js");
 const INCLUDE_OPTIONS = { genres: true, screenshots: true };
 
 /**
+ * Funcion que devuelve registros de la tabla genres segun el nombre
+ * @param {String[]} genres
+ * @returns {Object}
+ */
+async function getGenres(genres) {
+	const genreRecords = await prisma.genre.findMany({
+		where: { name: { in: genres, mode: "insensitive" } },
+	});
+
+	return genreRecords;
+}
+
+/**
+ * Funcion para añadir screenshots a un juego a partir de un array de URLs
+ * @param {int} gameId
+ * @param {String[]} newUrls
+ * @returns {String[]}
+ */
+async function addScreenshots(gameId, newUrls) {
+	const existing = await prisma.screenshot.findMany({
+		where: {
+			gameId: gameId,
+			imageUrl: { in: newUrls },
+		},
+		select: { imageUrl: true },
+	});
+
+	const existingUrls = existing.map((e) => e.imageUrl);
+
+	const urlsToAdd = newUrls.filter((url) => !existingUrls.includes(url));
+
+	if (urlsToAdd.length > 0) {
+		await prisma.screenshot.createMany({
+			data: urlsToAdd.map((url) => ({ imageUrl: url, gameId })),
+		});
+	}
+
+	return urlsToAdd;
+}
+
+/**
  * @param {int} cursor
  * @param {int} limit
  * @returns {Object} { data: Object, nextCursor: int, hasMore: boolean }
@@ -61,12 +102,31 @@ async function getGameByFilter(condition) {
  * @returns {Object}
  */
 async function updateGame(gameId, gameData) {
-	const updatedGame = await prisma.game.update({
+	const { genres, screenshots, ...restData } = gameData;
+
+	const genreRecords = await getGenres(genres);
+	const genresIds = genreRecords.map((g) => ({ id: g.id }));
+
+	if (genreRecords.length !== genres.length) {
+		return null;
+	}
+
+	await prisma.game.update({
 		where: { id: gameId },
-		data: gameData,
+		data: {
+			...restData,
+			genres: genresIds.length ? { set: [], connect: genresIds } : undefined,
+		},
+	});
+
+	if (screenshots && screenshots.length > 0) {
+		await addScreenshots(gameId, screenshots);
+	}
+
+	return await prisma.game.findUnique({
+		where: { id: gameId },
 		include: INCLUDE_OPTIONS,
 	});
-	return updatedGame;
 }
 
 module.exports = { getGames, getGameById, getGameByFilter, updateGame };
