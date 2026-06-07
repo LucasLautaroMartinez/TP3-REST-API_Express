@@ -17,7 +17,7 @@ async function getId(req) {
 async function getGames(req, res) {
 	const { Name, Developer } = req.query;
 	const cursor = req.query.cursor ? parseInt(req.query.cursor) : null;
-	const limit = req.query.limit ? parseInt(req.query.limit) : 10;
+	const limit = req.query.limit ? parseInt(req.query.limit) : 100;
 
 	if (Name || Developer) {
 		getGameByFilter(req, res);
