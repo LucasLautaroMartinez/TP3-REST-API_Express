@@ -109,6 +109,8 @@ const validateBody = (body, schema) => {
 	};
 };
 
+module.exports = validateBody;
+
 // Ejemplo de un esquema que se quiera validar (games)
 
 // const gameSchema = {
