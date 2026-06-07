@@ -1,14 +1,14 @@
 -- CreateTable
 CREATE TABLE "Game" (
     "id" SERIAL NOT NULL,
-    "title" TEXT NOT NULL,
+    "Name" TEXT NOT NULL,
+    "Rating" INTEGER NOT NULL,
+    "Developer" TEXT NOT NULL,
+    "Price" DOUBLE PRECISION NOT NULL,
+    "ReleaseDate" TIMESTAMP(3) NOT NULL,
+    "Image" TEXT NOT NULL,
+    "Description" TEXT NOT NULL,
     "isFavorite" BOOLEAN NOT NULL DEFAULT false,
-    "description" TEXT NOT NULL,
-    "developer" TEXT NOT NULL,
-    "imageUrl" TEXT NOT NULL,
-    "price" DOUBLE PRECISION NOT NULL,
-    "rating" INTEGER NOT NULL,
-    "releaseDate" TIMESTAMP(3) NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
