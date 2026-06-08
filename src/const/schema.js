@@ -2,15 +2,15 @@
 //* Las lineas comentadas son porque body.validation tiene problemas a resolver y esas lineas hacen que explote
 
 const gameSchema = {
-	title: {
+	Name: {
 		required: true,
 		type: "string",
 	},
-	description: {
+	Description: {
 		required: true,
 		type: "string",
 	},
-	price: {
+	Price: {
 		required: true,
 		type: "number",
 		validate: (value) => {
@@ -18,11 +18,11 @@ const gameSchema = {
 			return null;
 		},
 	},
-	developer: {
+	Developer: {
 		required: true,
 		type: "string",
 	},
-	releaseDate: {
+	ReleaseDate: {
 		required: true,
 		type: "date",
 		validate: (value) => {
@@ -31,7 +31,7 @@ const gameSchema = {
 			return null;
 		},
 	},
-	rating: {
+	Rating: {
 		required: true,
 		type: "number",
 		validate: (value) => {
@@ -39,7 +39,7 @@ const gameSchema = {
 			return null;
 		},
 	},
-	imageUrl: {
+	Image: {
 		required: true,
 		type: "string",
 	},
@@ -47,34 +47,39 @@ const gameSchema = {
 		required: false,
 		type: "boolean",
 	},
-	// genres: {
-	// 	required: true,
-	// 	type: "array",
-	// 	allowedValues: [
-	// 		"Action",
-	// 		"Adventure",
-	// 		"RPG",
-	// 		"Strategy",
-	// 		"Sports",
-	// 		"Racing",
-	// 		"Puzzle",
-	// 		"Horror",
-	// 		"Simulation",
-	// 	],
-	// 	validate: (value) => {
-	// 		if (!Array.isArray(value)) return "Genres must be an array";
-	// 		if (value.length === 0) return "At least one genre is required";
-	// 		return null;
-	// 	},
-	// },
-	// screenshots: {
-	//     required: true,
-	//     type: "array",
-	//     validate: (value) => {
-	//         if(value.length === 0) return "There has to be at least 1 screenshot"
-	//         return null
-	//     }
-	// }
+	genres: {
+		required: true,
+		type: "array",
+		allowedValues: [
+			"Action",
+			"RPG",
+			"Shooter",
+			"Puzzle",
+			"Adventure",
+			"Indie",
+			"Platformer",
+			"Massively Multiplayer",
+			"Sports",
+			"Racing",
+			"Simulation",
+			"Casual",
+			"Strategy",
+			"Arcade",
+		],
+		validate: (value) => {
+			if (!Array.isArray(value)) return "Genres must be an array";
+			if (value.length === 0) return "At least one genre is required";
+			return null;
+		},
+	},
+	screenshots: {
+		required: true,
+		type: "array",
+		validate: (value) => {
+			if (value.length === 0) return "There has to be at least 1 screenshot";
+			return null;
+		},
+	},
 };
 
 module.exports = gameSchema;

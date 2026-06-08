@@ -15,11 +15,11 @@ async function getId(req) {
  * @param {Object} res
  */
 async function getGames(req, res) {
-	const { Title, Developer } = req.query;
+	const { Name, Developer } = req.query;
 	const cursor = req.query.cursor ? parseInt(req.query.cursor) : null;
 	const limit = req.query.limit ? parseInt(req.query.limit) : 100;
 
-	if (Title || Developer) {
+	if (Name || Developer) {
 		getGameByFilter(req, res);
 	} else {
 		const result = await gameService.getGames(cursor, limit);
@@ -42,21 +42,22 @@ async function getGameById(req, res) {
  * @param {Object} res
  */
 async function getGameByFilter(req, res) {
-	const keys = ["title", "developer"];
+	const keys = ["name", "developer"];
 	const [key, value] = Object.entries(req.query)[0] || [];
 
 	if (!keys.includes(key.toLowerCase())) {
-		return res.json({ error: "no tiene title o developer" });
+		return res.json({ error: "no tiene name o developer" });
 	}
 
 	const condition = {
-		[key.toLowerCase()]: {
+		[key]: {
 			contains: value,
 			mode: "insensitive",
 		},
 	};
 
 	const gamesFiltered = await gameService.getGameByFilter(condition);
+	if (gamesFiltered.length === 0) res.json({ error: "No results" });
 	res.json(gamesFiltered);
 }
 
@@ -82,6 +83,7 @@ async function updateGame(req, res) {
 async function updateGamePUT(req, res) {
 	const body = req.body;
 	console.log("El body es: ", body);
+	console.log("Campos del body:", Object.keys(req.body));
 	const { isValid, errors, message } = validateBody(body, gameSchema);
 	if (!isValid) {
 		return console.log(errors);
