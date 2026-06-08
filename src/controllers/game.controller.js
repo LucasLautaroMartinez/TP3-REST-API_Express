@@ -1,5 +1,5 @@
 const gameService = require("../services/game.service.js");
-const validateBody = require("../validations/body.validation.js");
+const { validateBody } = require("../validations/body.validation.js");
 const gameSchema = require("../const/schema.js");
 console.log("validateBody es:", typeof validateBody);
 console.log("validateBody:", validateBody);
