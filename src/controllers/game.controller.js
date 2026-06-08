@@ -1,8 +1,6 @@
 const gameService = require("../services/game.service.js");
 const { validateBody } = require("../validations/body.validation.js");
 const gameSchema = require("../const/schema.js");
-console.log("validateBody es:", typeof validateBody);
-console.log("validateBody:", validateBody);
 
 //? ESTO CAPAZ HABRIA QUE PONERLO EN UNA CARPETA UTILS
 async function getId(req) {
@@ -82,8 +80,6 @@ async function updateGame(req, res) {
  */
 async function updateGamePUT(req, res) {
 	const body = req.body;
-	console.log("El body es: ", body);
-	console.log("Campos del body:", Object.keys(req.body));
 	const { isValid, errors, message } = validateBody(body, gameSchema);
 	if (!isValid) {
 		return console.log(errors);
@@ -97,10 +93,18 @@ async function updateGamePUT(req, res) {
 	res.json(updatedGame);
 }
 
+async function deleteGame(req, res) {
+	const gameId = await getId(req);
+
+	const deletedGame = await gameService.deleteGame(gameId);
+	res.json(deletedGame);
+}
+
 module.exports = {
 	getGames,
 	getGameById,
 	getGameByFilter,
 	updateGame,
 	updateGamePUT,
+	deleteGame,
 };
