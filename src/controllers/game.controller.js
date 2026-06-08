@@ -32,11 +32,15 @@ async function getGames(req, res) {
  * @param {Object} res
  */
 async function getGameById(req, res) {
-	const gameId = await getId(req);
-	const game = await gameService.getGameById(gameId);
-	res.json(game);
+  const gameId = await getId(req);
+  const game = await gameService.getGameById(gameId);
+  
+  if (!game) {
+    return res.status(404).json({ error: "Juego no encontrado" });
+  }
+  
+  res.json(game);
 }
-
 /**
  * @param {Object} req
  * @param {Object} res
