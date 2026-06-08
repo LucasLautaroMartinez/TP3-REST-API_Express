@@ -143,10 +143,39 @@ async function deleteGame(gameId) {
 	return deletedGame;
 }
 
+/**
+ * @param {Object} gameData
+ * @returns {Object}
+ */
+async function createGame(gameData) {
+	const { genres, screenshots, ...restData } = gameData;
+
+	const genreRecords = await getGenres(genres);
+	if (genreRecords.length !== genres.length) return null;
+	const genresIds = genreRecords.map((g) => ({ id: g.id }));
+
+	const createdGame = await prisma.game.create({
+		data: {
+			...restData,
+			genres: genresIds.length ? { connect: genresIds } : undefined,
+		},
+	});
+
+	if (screenshots && screenshots.length > 0) {
+		await addScreenshots(createdGame.id, screenshots);
+	}
+
+	return await prisma.game.findUnique({
+		where: { id: createdGame.id },
+		include: { genres: true, screenshots: true },
+	});
+}
+
 module.exports = {
 	getGames,
 	getGameById,
 	getGameByFilter,
 	updateGame,
 	deleteGame,
+	createGame,
 };

@@ -1,5 +1,5 @@
 const gameService = require("../services/game.service.js");
-const { validateBody } = require("../validations/body.validation.js");
+const validateBody = require("../validations/body.validation.js");
 const gameSchema = require("../const/schema.js");
 
 //? ESTO CAPAZ HABRIA QUE PONERLO EN UNA CARPETA UTILS
@@ -100,6 +100,25 @@ async function deleteGame(req, res) {
 	res.json(deletedGame);
 }
 
+/**
+ * @param {Object} req
+ * @param {Object} res
+ */
+async function createGame(req, res) {
+	const body = req.body;
+
+	const { isValid, errors, message } = validateBody(body, gameSchema);
+	if (!isValid) {
+		return console.log(errors);
+	}
+	if (body.id) {
+		res.json("IDs are created automatically");
+	}
+
+	const gameCreated = await gameService.createGame(body);
+	res.json(gameCreated);
+}
+
 module.exports = {
 	getGames,
 	getGameById,
@@ -107,4 +126,5 @@ module.exports = {
 	updateGame,
 	updateGamePUT,
 	deleteGame,
+	createGame,
 };
