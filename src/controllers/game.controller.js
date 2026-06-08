@@ -3,8 +3,16 @@ const validateBody = require("../validations/body.validation.js");
 const gameSchema = require("../const/schema.js");
 
 //? ESTO CAPAZ HABRIA QUE PONERLO EN UNA CARPETA UTILS
-async function getId(req) {
-	return Number(req.params.id);
+async function getId(req, res) {
+	const id = req.params.id;
+	const type = typeof id;
+	if (isNaN(id)) {
+		return res
+			.status(400)
+			.json({ error: `INVALID ID, EXPECTED INTEGER FOUND: ${type}` });
+	}
+
+	return Number(id);
 }
 //? ESTO CAPAZ HABRIA QUE PONERLO EN UNA CARPETA UTILS
 
@@ -36,11 +44,7 @@ async function getGames(req, res) {
  */
 async function getGameById(req, res) {
 	try {
-		const gameId = parseInt(req.params.id);
-
-		if (isNaN(gameId)) {
-			return res.status(400).json({ error: "El ID debe ser un número" });
-		}
+		const gameId = await getId(req, res);
 
 		const game = await gameService.getGameById(gameId);
 
@@ -95,14 +99,24 @@ async function getGameByFilter(req, res) {
  * @param {Object} res
  */
 async function updateGame(req, res) {
-	const gameId = await getId(req);
-	const data = req.body;
-	if (data.id) {
-		res.json("Not allowed to modify ID's");
-	}
-	const updatedGame = await gameService.updateGame(gameId, data);
+	try {
+		const gameId = await getId(req, res);
 
-	res.json(updatedGame);
+		const data = req.body;
+		if (data.id) {
+			res.status(400).json("NOT ALLOWED TO MODIFY ID'S");
+		}
+		const updatedGame = await gameService.updateGame(gameId, data);
+
+		if (!updatedGame) {
+			res.status(500).json({ error: "INTERNAL SERVER ERROR" });
+		}
+
+		res.status(201).json(updatedGame);
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error: "INTERNAL SERVER ERROR" });
+	}
 }
 
 /**
@@ -110,22 +124,33 @@ async function updateGame(req, res) {
  * @param {Object} res
  */
 async function updateGamePUT(req, res) {
-	const body = req.body;
-	const { isValid, errors, message } = validateBody(body, gameSchema);
-	if (!isValid) {
-		return console.log(errors);
-	}
-	if (body.id) {
-		res.json("Not allowed to modify ID's");
-	}
+	try {
+		const body = req.body;
+		const { isValid, errors, message } = validateBody(body, gameSchema);
 
-	const gameId = await getId(req);
-	const updatedGame = await gameService.updateGame(gameId, body);
-	res.json(updatedGame);
+		if (!isValid) {
+			return res.status(400).json(errors);
+		}
+		if (body.id) {
+			return res.status(400).json({ error: "NOT ALLOWED TO MODIFY ID'S" });
+		}
+
+		const gameId = await getId(req, res);
+		const updatedGame = await gameService.updateGame(gameId, body);
+
+		if (!updatedGame) {
+			return res.status(500).json({ error: "INTERNAL SERVER ERROR" });
+		}
+
+		res.status(201).json(updatedGame);
+	} catch (error) {
+		console.error(error);
+		res.status(500).json({ error: "INTERNAL SERVER ERROR" });
+	}
 }
 
 async function deleteGame(req, res) {
-	const gameId = await getId(req);
+	const gameId = await getId(req, res);
 
 	const deletedGame = await gameService.deleteGame(gameId);
 	res.json(deletedGame);
