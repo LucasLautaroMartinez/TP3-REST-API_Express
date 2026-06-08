@@ -129,4 +129,24 @@ async function updateGame(gameId, gameData) {
 	});
 }
 
-module.exports = { getGames, getGameById, getGameByFilter, updateGame };
+/**
+ * @param {int} gameId
+ * @returns {Object}
+ */
+async function deleteGame(gameId) {
+	const deletedGame = await prisma.game.delete({
+		where: {
+			id: gameId,
+		},
+	});
+
+	return deletedGame;
+}
+
+module.exports = {
+	getGames,
+	getGameById,
+	getGameByFilter,
+	updateGame,
+	deleteGame,
+};
