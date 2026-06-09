@@ -80,6 +80,13 @@ async function getGameById(gameId) {
 		},
 		include: INCLUDE_OPTIONS,
 	});
+
+	if (!game) {
+		const error = new Error("GAME NOT FOUND");
+		error.code = "GAME NOT FOUND";
+		throw error;
+	}
+
 	return game;
 }
 
@@ -102,6 +109,16 @@ async function getGameByFilter(condition) {
  * @returns {Object}
  */
 async function updateGame(gameId, gameData) {
+	const existing = await prisma.game.findUnique({
+		where: { id: gameId },
+	});
+
+	if (!existing) {
+		const error = new Error("GAME NOT FOUND");
+		error.code = "GAME NOT FOUND";
+		throw error;
+	}
+
 	const { genres, screenshots, ...restData } = gameData;
 
 	const genreRecords = await getGenres(genres);
@@ -134,13 +151,15 @@ async function updateGame(gameId, gameData) {
  * @returns {Object}
  */
 async function deleteGame(gameId) {
-	const deletedGame = await prisma.game.delete({
-		where: {
-			id: gameId,
-		},
-	});
+	const existing = await prisma.game.findUnique({ where: { id: gameId } });
 
-	return deletedGame;
+	if (!existing) {
+		const error = new Error("GAME NOT FOUND");
+		error.code = "GAME NOT FOUND";
+		throw error;
+	}
+
+	return await prisma.game.delete({ where: { id: gameId } });
 }
 
 /**

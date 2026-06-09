@@ -3,15 +3,13 @@ const validateBody = require("../validations/body.validation.js");
 const gameSchema = require("../const/schema.js");
 
 //? ESTO CAPAZ HABRIA QUE PONERLO EN UNA CARPETA UTILS
-async function getId(req, res) {
+async function getId(req) {
 	const id = req.params.id;
-	const type = typeof id;
 	if (isNaN(id)) {
-		return res
-			.status(400)
-			.json({ error: `INVALID ID, EXPECTED INTEGER FOUND: ${type}` });
+		const error = new Error(`INVALID ID, EXPECTED INTEGER FOUND: ${typeof id}`);
+		error.code = "INVALID_ID";
+		throw error;
 	}
-
 	return Number(id);
 }
 //? ESTO CAPAZ HABRIA QUE PONERLO EN UNA CARPETA UTILS
@@ -44,16 +42,20 @@ async function getGames(req, res) {
  */
 async function getGameById(req, res) {
 	try {
-		const gameId = await getId(req, res);
+		const gameId = await getId(req);
 
 		const game = await gameService.getGameById(gameId);
 
-		if (!game) {
-			return res.status(404).json({ error: "Juego no encontrado" });
-		}
-
 		res.status(200).json(game);
 	} catch (error) {
+		if (error.code === "INVALID_ID") {
+			return res.status(400).json({ error: error.message });
+		}
+
+		if (error.code === "GAME_NOT_FOUND") {
+			return res.status(404).json({ error: error.message });
+		}
+
 		console.error(error);
 		res.status(500).json({ error: "Error interno del servidor" });
 	}
@@ -100,7 +102,7 @@ async function getGameByFilter(req, res) {
  */
 async function updateGame(req, res) {
 	try {
-		const gameId = await getId(req, res);
+		const gameId = await getId(req);
 
 		const data = req.body;
 		if (data.id) {
@@ -108,12 +110,18 @@ async function updateGame(req, res) {
 		}
 		const updatedGame = await gameService.updateGame(gameId, data);
 
-		if (!updatedGame) {
-			res.status(500).json({ error: "INTERNAL SERVER ERROR" });
+		if (error.code === "GAME_NOT_FOUND") {
+			return res.status(404).json({ error: error.message });
 		}
 
 		res.status(201).json(updatedGame);
 	} catch (error) {
+		if (error.code === "INVALID_ID") {
+			return res.status(400).json({ error: error.message });
+		}
+		if (error.code === "GAME_NOT_FOUND") {
+			return res.status(404).json({ error: error.message });
+		}
 		console.error(error);
 		res.status(500).json({ error: "INTERNAL SERVER ERROR" });
 	}
@@ -135,25 +143,40 @@ async function updateGamePUT(req, res) {
 			return res.status(400).json({ error: "NOT ALLOWED TO MODIFY ID'S" });
 		}
 
-		const gameId = await getId(req, res);
+		const gameId = await getId(req);
 		const updatedGame = await gameService.updateGame(gameId, body);
-
-		if (!updatedGame) {
-			return res.status(500).json({ error: "INTERNAL SERVER ERROR" });
-		}
 
 		res.status(201).json(updatedGame);
 	} catch (error) {
+		if (error.code === "INVALID_ID") {
+			return res.status(400).json({ error: error.message });
+		}
+		if (error.code === "GAME_NOT_FOUND") {
+			return res.status(404).json({ error: error.message });
+		}
 		console.error(error);
 		res.status(500).json({ error: "INTERNAL SERVER ERROR" });
 	}
 }
 
 async function deleteGame(req, res) {
-	const gameId = await getId(req, res);
+	try {
+		const gameId = await getId(req);
 
-	const deletedGame = await gameService.deleteGame(gameId);
-	res.json(deletedGame);
+		const deletedGame = await gameService.deleteGame(gameId);
+
+		res.status(200).json(deletedGame);
+	} catch (error) {
+		if (error.code === "INVALID_ID") {
+			return res.status(400).json({ error: error.message });
+		}
+
+		if (error.code === "GAME_NOT_FOUND") {
+			return res.status(404).json({ error: error.message });
+		}
+		console.error(error);
+		res.status(500).json({ error: "INTERNAL SERVER ERROR" });
+	}
 }
 
 /**
