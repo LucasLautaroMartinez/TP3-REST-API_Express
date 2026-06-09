@@ -161,18 +161,25 @@ async function deleteGame(req, res) {
  * @param {Object} res
  */
 async function createGame(req, res) {
-	const body = req.body;
+	try {
+		const body = req.body;
 
-	const { isValid, errors, message } = validateBody(body, gameSchema);
-	if (!isValid) {
-		return console.log(errors);
-	}
-	if (body.id) {
-		res.json("IDs are created automatically");
-	}
+		const { isValid, errors } = validateBody(body, gameSchema);
 
-	const gameCreated = await gameService.createGame(body);
-	res.json(gameCreated);
+		if (!isValid) {
+			return res.status(400).json({ error: errors });
+		}
+
+		if (body.id) {
+			return res.status(400).json({ error: "IDs are created automatically" });
+		}
+
+		const gameCreated = await gameService.createGame(body);
+		return res.status(201).json(gameCreated);
+	} catch (error) {
+		console.error(error);
+		return res.status(500).json({ error: "INTERNAL SERVER ERROR" });
+	}
 }
 
 module.exports = {
