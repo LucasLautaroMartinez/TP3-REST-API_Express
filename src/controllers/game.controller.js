@@ -52,7 +52,7 @@ async function getGameById(req, res) {
 			return res.status(400).json({ error: error.message });
 		}
 
-		if (error.code === "GAME_NOT_FOUND") {
+		if (error.code === "GAME NOT FOUND") {
 			return res.status(404).json({ error: error.message });
 		}
 
@@ -110,16 +110,12 @@ async function updateGame(req, res) {
 		}
 		const updatedGame = await gameService.updateGame(gameId, data);
 
-		if (error.code === "GAME_NOT_FOUND") {
-			return res.status(404).json({ error: error.message });
-		}
-
 		res.status(201).json(updatedGame);
 	} catch (error) {
 		if (error.code === "INVALID_ID") {
 			return res.status(400).json({ error: error.message });
 		}
-		if (error.code === "GAME_NOT_FOUND") {
+		if (error.code === "GAME NOT FOUND") {
 			return res.status(404).json({ error: error.message });
 		}
 		console.error(error);
@@ -151,7 +147,7 @@ async function updateGamePUT(req, res) {
 		if (error.code === "INVALID_ID") {
 			return res.status(400).json({ error: error.message });
 		}
-		if (error.code === "GAME_NOT_FOUND") {
+		if (error.code === "GAME NOT FOUND") {
 			return res.status(404).json({ error: error.message });
 		}
 		console.error(error);
@@ -171,7 +167,7 @@ async function deleteGame(req, res) {
 			return res.status(400).json({ error: error.message });
 		}
 
-		if (error.code === "GAME_NOT_FOUND") {
+		if (error.code === "GAME NOT FOUND") {
 			return res.status(404).json({ error: error.message });
 		}
 		console.error(error);
