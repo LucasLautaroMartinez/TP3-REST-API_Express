@@ -46,23 +46,27 @@ async function getGameById(req, res) {
  * @param {Object} res
  */
 async function getGameByFilter(req, res) {
-	const keys = ["name", "developer"];
-	const [key, value] = Object.entries(req.query)[0] || [];
+  const [key, value] = Object.entries(req.query)[0] || [];
+  const lowerKey = key?.toLowerCase();
 
-	if (!keys.includes(key.toLowerCase())) {
-		return res.json({ error: "no tiene name o developer" });
-	}
+  if (!lowerKey || (lowerKey !== "name" && lowerKey !== "developer")) {
+    return res.json({ error: "no tiene name o developer" });
+  }
 
-	const condition = {
-		[key]: {
-			contains: value,
-			mode: "insensitive",
-		},
-	};
+  const prismaKey = lowerKey === 'name' ? 'Name' : 'Developer';
 
-	const gamesFiltered = await gameService.getGameByFilter(condition);
-	if (gamesFiltered.length === 0) res.json({ error: "No results" });
-	res.json(gamesFiltered);
+  const condition = {
+    [prismaKey]: {
+      contains: value,
+      mode: "insensitive",
+    },
+  };
+
+  const gamesFiltered = await gameService.getGameByFilter(condition);
+  if (gamesFiltered.length === 0) {
+    return res.json({ error: "No results" });
+  }
+  res.json(gamesFiltered);
 }
 
 /**
@@ -70,14 +74,20 @@ async function getGameByFilter(req, res) {
  * @param {Object} res
  */
 async function updateGame(req, res) {
-	const gameId = await getId(req);
-	const data = req.body;
-	if (data.id) {
-		res.json("Not allowed to modify ID's");
-	}
-	const updatedGame = await gameService.updateGame(gameId, data);
-
-	res.json(updatedGame);
+  try {
+    const gameId = await getId(req);
+    const data = req.body;
+    
+    if (data.id) {
+      return res.status(400).json("Not allowed to modify ID's");
+    }
+    
+    const updatedGame = await gameService.updateGame(gameId, data);
+    res.json(updatedGame);
+  } catch (error) {
+    console.error("Error en updateGame:", error);
+    res.status(500).json({ error: error.message });
+  }
 }
 
 /**
