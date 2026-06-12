@@ -60,7 +60,6 @@ async function getGameById(req, res) {
 		res.status(500).json({ error: "Error interno del servidor" });
 	}
 }
-
 /**
  * @param {Object} req
  * @param {Object} res
