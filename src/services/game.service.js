@@ -118,29 +118,32 @@ async function updateGame(gameId, gameData) {
 
 	const { genres, screenshots, ...restData } = gameData;
 
-	const genreRecords = await getGenres(genres);
-	const genresIds = genreRecords.map((g) => ({ id: g.id }));
+  const updateData = { ...restData };
 
-	if (genreRecords.length !== genres.length) {
-		return null;
-	}
+  if (genres !== undefined) {
+    const genreRecords = await getGenres(genres);
+    const genresIds = genreRecords.map((g) => ({ id: g }));
 
-	await prisma.game.update({
-		where: { id: gameId },
-		data: {
-			...restData,
-			genres: genresIds.length ? { set: [], connect: genresIds } : undefined,
-		},
-	});
+    if (genreRecords.length !== genres.length) {
+      return null;
+    }
 
-	if (screenshots && screenshots.length > 0) {
-		await addScreenshots(gameId, screenshots);
-	}
+    updateData.genres = genresIds.length ? { set: [], connect: genresIds } : undefined;
+  }
 
-	return await prisma.game.findUnique({
-		where: { id: gameId },
-		include: INCLUDE_OPTIONS,
-	});
+  await prisma.game.update({
+    where: { id: gameId },
+    data: updateData,
+  });
+
+  if (screenshots !== undefined && screenshots.length > 0) {
+    await addScreenshots(gameId, screenshots);
+  }
+
+  return await prisma.game.findUnique({
+    where: { id: gameId },
+    include: INCLUDE_OPTIONS,
+  });
 }
 
 /**
