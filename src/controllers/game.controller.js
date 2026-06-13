@@ -1,14 +1,13 @@
 const gameService = require("../services/game.service.js");
 const validateBody = require("../validations/body.validation.js");
 const gameSchema = require("../const/schema.js");
+const errorThrower = require("../utils/errors.js");
 
 //? ESTO CAPAZ HABRIA QUE PONERLO EN UNA CARPETA UTILS
 async function getId(req) {
 	const id = req.params.id;
 	if (isNaN(id)) {
-		const error = new Error(`INVALID ID, EXPECTED INTEGER FOUND: ${typeof id}`);
-		error.code = "INVALID_ID";
-		throw error;
+		errorThrower.invalidId(id);
 	}
 	return Number(id);
 }
@@ -18,7 +17,7 @@ async function getId(req) {
  * @param {Object} req
  * @param {Object} res
  */
-async function getGames(req, res) {
+async function getGames(req, res, next) {
 	try {
 		const { Name, Developer } = req.query;
 		const cursor = req.query.cursor ? parseInt(req.query.cursor) : null;
@@ -31,8 +30,7 @@ async function getGames(req, res) {
 		const result = await gameService.getGames(cursor, limit);
 		res.status(200).json(result);
 	} catch (error) {
-		console.error(error);
-		res.status(500).json({ error: "Error interno del servidor" });
+		next(error);
 	}
 }
 
@@ -40,7 +38,7 @@ async function getGames(req, res) {
  * @param {Object} req
  * @param {Object} res
  */
-async function getGameById(req, res) {
+async function getGameById(req, res, next) {
 	try {
 		const gameId = await getId(req);
 
@@ -48,23 +46,14 @@ async function getGameById(req, res) {
 
 		res.status(200).json(game);
 	} catch (error) {
-		if (error.code === "INVALID_ID") {
-			return res.status(400).json({ error: error.message });
-		}
-
-		if (error.code === "GAME NOT FOUND") {
-			return res.status(404).json({ error: error.message });
-		}
-
-		console.error(error);
-		res.status(500).json({ error: "Error interno del servidor" });
+		next(error);
 	}
 }
 /**
  * @param {Object} req
  * @param {Object} res
  */
-async function getGameByFilter(req, res) {
+async function getGameByFilter(req, res, next) {
 	try {
 		const keys = ["name", "developer"];
 		const [key, value] = Object.entries(req.query)[0] || [];
@@ -84,14 +73,9 @@ async function getGameByFilter(req, res) {
 
 		const gamesFiltered = await gameService.getGameByFilter(condition);
 
-		if (!gamesFiltered || gamesFiltered.length === 0) {
-			return res.status(404).json({ error: "sin resultados" });
-		}
-
 		res.status(200).json(gamesFiltered);
 	} catch (error) {
-		console.error(error);
-		res.status(500).json({ error: "Error interno del servidor" });
+		next(error);
 	}
 }
 
@@ -99,26 +83,19 @@ async function getGameByFilter(req, res) {
  * @param {Object} req
  * @param {Object} res
  */
-async function updateGame(req, res) {
+async function updateGame(req, res, next) {
 	try {
 		const gameId = await getId(req);
 
 		const data = req.body;
 		if (data.id) {
-			res.status(400).json("NOT ALLOWED TO MODIFY ID'S");
+			errorThrower.unauthorized();
 		}
 		const updatedGame = await gameService.updateGame(gameId, data);
 
 		res.status(201).json(updatedGame);
 	} catch (error) {
-		if (error.code === "INVALID_ID") {
-			return res.status(400).json({ error: error.message });
-		}
-		if (error.code === "GAME NOT FOUND") {
-			return res.status(404).json({ error: error.message });
-		}
-		console.error(error);
-		res.status(500).json({ error: "INTERNAL SERVER ERROR" });
+		next(error);
 	}
 }
 
@@ -126,16 +103,16 @@ async function updateGame(req, res) {
  * @param {Object} req
  * @param {Object} res
  */
-async function updateGamePUT(req, res) {
+async function updateGamePUT(req, res, next) {
 	try {
 		const body = req.body;
 		const { isValid, errors, message } = validateBody(body, gameSchema);
 
 		if (!isValid) {
-			return res.status(400).json(errors);
+			errorThrower.invalidBody(errors);
 		}
 		if (body.id) {
-			return res.status(400).json({ error: "NOT ALLOWED TO MODIFY ID'S" });
+			errorThrower.unauthorized();
 		}
 
 		const gameId = await getId(req);
@@ -143,34 +120,7 @@ async function updateGamePUT(req, res) {
 
 		res.status(201).json(updatedGame);
 	} catch (error) {
-		if (error.code === "INVALID_ID") {
-			return res.status(400).json({ error: error.message });
-		}
-		if (error.code === "GAME NOT FOUND") {
-			return res.status(404).json({ error: error.message });
-		}
-		console.error(error);
-		res.status(500).json({ error: "INTERNAL SERVER ERROR" });
-	}
-}
-
-async function deleteGame(req, res) {
-	try {
-		const gameId = await getId(req);
-
-		const deletedGame = await gameService.deleteGame(gameId);
-
-		res.status(200).json(deletedGame);
-	} catch (error) {
-		if (error.code === "INVALID_ID") {
-			return res.status(400).json({ error: error.message });
-		}
-
-		if (error.code === "GAME NOT FOUND") {
-			return res.status(404).json({ error: error.message });
-		}
-		console.error(error);
-		res.status(500).json({ error: "INTERNAL SERVER ERROR" });
+		next(error);
 	}
 }
 
@@ -178,25 +128,40 @@ async function deleteGame(req, res) {
  * @param {Object} req
  * @param {Object} res
  */
-async function createGame(req, res) {
+async function deleteGame(req, res, next) {
+	try {
+		const gameId = await getId(req);
+
+		const deletedGame = await gameService.deleteGame(gameId);
+
+		res.status(200).json(deletedGame);
+	} catch (error) {
+		next(error);
+	}
+}
+
+/**
+ * @param {Object} req
+ * @param {Object} res
+ */
+async function createGame(req, res, next) {
 	try {
 		const body = req.body;
 
 		const { isValid, errors } = validateBody(body, gameSchema);
 
 		if (!isValid) {
-			return res.status(400).json({ error: errors });
+			errorThrower.invalidBody(errors);
 		}
 
 		if (body.id) {
-			return res.status(400).json({ error: "IDs are created automatically" });
+			errorThrower.rejectIdCreation();
 		}
 
 		const gameCreated = await gameService.createGame(body);
 		return res.status(201).json(gameCreated);
 	} catch (error) {
-		console.error(error);
-		return res.status(500).json({ error: "INTERNAL SERVER ERROR" });
+		next(error);
 	}
 }
 
