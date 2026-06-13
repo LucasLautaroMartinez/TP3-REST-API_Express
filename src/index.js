@@ -4,6 +4,7 @@ const gameRoutes = require("./routes/game.routes.js");
 //? ESTO DEBERIA DE MOVERSE A APP.JS
 const express = require("express");
 const cors = require("cors");
+const errorHandler = require("./middlewares/errorHandler.js");
 
 const allowedOrigins = require("./const/allowedOrigins.js");
 
@@ -12,15 +13,15 @@ const app = express();
 // Middlewares
 
 app.use(
-  cors({
-    origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
+	cors({
+		origin: (origin, callback) => {
+			if (!origin || allowedOrigins.includes(origin)) {
+				return callback(null, true);
+			}
 
-      callback(new Error("Origen no permitido por CORS"));
-    },
-  })
+			callback(new Error("Origen no permitido por CORS"));
+		},
+	}),
 );
 
 app.use(express.json());
@@ -34,15 +35,7 @@ app.get("/api/health", (req, res) => {
 });
 app.use("/games", gameRoutes);
 
-// app.get("/games", async (req, res) => {
-// 	const games = await getGames();
-// 	res.status(200).json({
-// 		status: "ok",
-// 		message: games,
-// 	});
-// });
-
-app.use("/games", gameRoutes);
+app.use(errorHandler);
 
 // Server
 app.listen(PORT, () => {

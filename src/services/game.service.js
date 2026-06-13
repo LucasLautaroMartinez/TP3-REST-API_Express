@@ -1,4 +1,5 @@
 const prisma = require("../prisma/prismaClient.js");
+const errorThrower = require("../utils/errors.js");
 
 const INCLUDE_OPTIONS = { genres: true, screenshots: true };
 
@@ -82,9 +83,7 @@ async function getGameById(gameId) {
 	});
 
 	if (!game) {
-		const error = new Error("GAME NOT FOUND");
-		error.code = "GAME NOT FOUND";
-		throw error;
+		errorThrower.gameNotFound(gameId);
 	}
 
 	return game;
@@ -114,9 +113,7 @@ async function updateGame(gameId, gameData) {
 	});
 
 	if (!existing) {
-		const error = new Error("GAME NOT FOUND");
-		error.code = "GAME NOT FOUND";
-		throw error;
+		errorThrower.gameNotFound(gameId);
 	}
 
 	const { genres, screenshots, ...restData } = gameData;
@@ -154,9 +151,7 @@ async function deleteGame(gameId) {
 	const existing = await prisma.game.findUnique({ where: { id: gameId } });
 
 	if (!existing) {
-		const error = new Error("GAME NOT FOUND");
-		error.code = "GAME NOT FOUND";
-		throw error;
+		errorThrower.gameNotFound(gameId);
 	}
 
 	return await prisma.game.delete({ where: { id: gameId } });
@@ -170,7 +165,11 @@ async function createGame(gameData) {
 	const { genres, screenshots, ...restData } = gameData;
 
 	const genreRecords = await getGenres(genres);
-	if (genreRecords.length !== genres.length) return null;
+
+	if (genreRecords.length !== genres.length) {
+		errorThrower.genresNotFound(genres, genreRecords);
+	}
+
 	const genresIds = genreRecords.map((g) => ({ id: g.id }));
 
 	const createdGame = await prisma.game.create({
