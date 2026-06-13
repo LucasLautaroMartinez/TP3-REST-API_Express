@@ -1,12 +1,15 @@
 const gameService = require("../services/game.service.js");
-const { validateBody } = require("../validations/body.validation.js");
+const validateBody = require("../validations/body.validation.js");
 const gameSchema = require("../const/schema.js");
-console.log("validateBody es:", typeof validateBody);
-console.log("validateBody:", validateBody);
+const errorThrower = require("../utils/errors.js");
 
 //? ESTO CAPAZ HABRIA QUE PONERLO EN UNA CARPETA UTILS
 async function getId(req) {
-	return Number(req.params.id);
+	const id = req.params.id;
+	if (isNaN(id)) {
+		errorThrower.invalidId(id);
+	}
+	return Number(id);
 }
 //? ESTO CAPAZ HABRIA QUE PONERLO EN UNA CARPETA UTILS
 
@@ -14,16 +17,20 @@ async function getId(req) {
  * @param {Object} req
  * @param {Object} res
  */
-async function getGames(req, res) {
-	const { Name, Developer } = req.query;
-	const cursor = req.query.cursor ? parseInt(req.query.cursor) : null;
-	const limit = req.query.limit ? parseInt(req.query.limit) : 100;
+async function getGames(req, res, next) {
+	try {
+		const { Name, Developer } = req.query;
+		const cursor = req.query.cursor ? parseInt(req.query.cursor) : null;
+		const limit = req.query.limit ? parseInt(req.query.limit) : 100;
 
-	if (Name || Developer) {
-		getGameByFilter(req, res);
-	} else {
+		if (Name || Developer) {
+			return getGameByFilter(req, res);
+		}
+
 		const result = await gameService.getGames(cursor, limit);
-		res.json(result);
+		res.status(200).json(result);
+	} catch (error) {
+		next(error);
 	}
 }
 
@@ -31,84 +38,131 @@ async function getGames(req, res) {
  * @param {Object} req
  * @param {Object} res
  */
-async function getGameById(req, res) {
-  const gameId = await getId(req);
-  const game = await gameService.getGameById(gameId);
-  
-  if (!game) {
-    return res.status(404).json({ error: "Juego no encontrado" });
-  }
-  
-  res.json(game);
-}
-/**
- * @param {Object} req
- * @param {Object} res
- */
-async function getGameByFilter(req, res) {
-  const [key, value] = Object.entries(req.query)[0] || [];
-  const lowerKey = key?.toLowerCase();
+async function getGameById(req, res, next) {
+	try {
+		const gameId = await getId(req);
 
-  if (!lowerKey || (lowerKey !== "name" && lowerKey !== "developer")) {
-    return res.json({ error: "no tiene name o developer" });
-  }
+		const game = await gameService.getGameById(gameId);
 
-  const prismaKey = lowerKey === 'name' ? 'Name' : 'Developer';
-
-  const condition = {
-    [prismaKey]: {
-      contains: value,
-      mode: "insensitive",
-    },
-  };
-
-  const gamesFiltered = await gameService.getGameByFilter(condition);
-  if (gamesFiltered.length === 0) {
-    return res.json({ error: "No results" });
-  }
-  res.json(gamesFiltered);
-}
-
-/**
- * @param {Object} req
- * @param {Object} res
- */
-async function updateGame(req, res) {
-  try {
-    const gameId = await getId(req);
-    const data = req.body;
-    
-    if (data.id) {
-      return res.status(400).json("Not allowed to modify ID's");
-    }
-    
-    const updatedGame = await gameService.updateGame(gameId, data);
-    res.json(updatedGame);
-  } catch (error) {
-    console.error("Error en updateGame:", error);
-    res.status(500).json({ error: error.message });
-  }
-}
-
-/**
- * @param {Object} req
- * @param {Object} res
- */
-async function updateGamePUT(req, res) {
-	const body = req.body;
-	console.log("El body es: ", body);
-	console.log("Campos del body:", Object.keys(req.body));
-	const { isValid, errors, message } = validateBody(body, gameSchema);
-	if (!isValid) {
-		return console.log(errors);
+		res.status(200).json(game);
+	} catch (error) {
+		next(error);
 	}
-	if (body.id) {
-		res.json("Not allowed to modify ID's");
-	}
+}
+/**
+ * @param {Object} req
+ * @param {Object} res
+ */
+async function getGameByFilter(req, res, next) {
+	try {
+		const keys = ["name", "developer"];
+		const [key, value] = Object.entries(req.query)[0] || [];
 
-	const gameId = await getId(req);
-	const updatedGame = await gameService.updateGame(gameId, body);
-	res.json(updatedGame);
+		if (!keys.includes(key?.toLowerCase())) {
+			return res
+				.status(400)
+				.json({ error: "Debe filtrar por name o developer" });
+		}
+
+		const condition = {
+			[key]: {
+				contains: value,
+				mode: "insensitive",
+			},
+		};
+
+		const gamesFiltered = await gameService.getGameByFilter(condition);
+
+		res.status(200).json(gamesFiltered);
+	} catch (error) {
+		next(error);
+	}
+}
+
+/**
+ * @param {Object} req
+ * @param {Object} res
+ */
+async function updateGame(req, res, next) {
+	try {
+		const gameId = await getId(req);
+
+		const data = req.body;
+		if (data.id) {
+			errorThrower.unauthorized();
+		}
+		const updatedGame = await gameService.updateGame(gameId, data);
+
+		res.status(201).json(updatedGame);
+	} catch (error) {
+		next(error);
+	}
+}
+
+/**
+ * @param {Object} req
+ * @param {Object} res
+ */
+async function updateGamePUT(req, res, next) {
+	try {
+		const body = req.body;
+		const { isValid, errors, message } = validateBody(body, gameSchema);
+
+		if (!isValid) {
+			errorThrower.invalidBody(errors);
+		}
+		if (body.id) {
+			errorThrower.unauthorized();
+		}
+
+		const gameId = await getId(req);
+		const updatedGame = await gameService.updateGame(gameId, body);
+
+		res.status(201).json(updatedGame);
+	} catch (error) {
+		next(error);
+	}
+}
+
+/**
+ * @param {Object} req
+ * @param {Object} res
+ */
+async function deleteGame(req, res, next) {
+	try {
+		const gameId = await getId(req);
+
+		const deletedGame = await gameService.deleteGame(gameId);
+
+		res.status(200).json(deletedGame);
+	} catch (error) {
+		next(error);
+	}
+}
+
+/**
+ * @param {Object} req
+ * @param {Object} res
+ */
+async function createGame(req, res, next) {
+	try {
+		const body = req.body;
+
+		const { isValid, errors } = validateBody(body, gameSchema);
+
+		if (!isValid) {
+			errorThrower.invalidBody(errors);
+		}
+
+		if (body.id) {
+			errorThrower.rejectIdCreation();
+		}
+
+		const gameCreated = await gameService.createGame(body);
+		return res.status(201).json(gameCreated);
+	} catch (error) {
+		next(error);
+	}
 }
 
 module.exports = {
@@ -117,4 +171,6 @@ module.exports = {
 	getGameByFilter,
 	updateGame,
 	updateGamePUT,
+	deleteGame,
+	createGame,
 };

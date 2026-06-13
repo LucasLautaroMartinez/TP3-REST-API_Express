@@ -1,4 +1,5 @@
 const prisma = require("../prisma/prismaClient.js");
+const errorThrower = require("../utils/errors.js");
 
 const INCLUDE_OPTIONS = { genres: true, screenshots: true };
 
@@ -80,6 +81,11 @@ async function getGameById(gameId) {
 		},
 		include: INCLUDE_OPTIONS,
 	});
+
+	if (!game) {
+		errorThrower.gameNotFound(gameId);
+	}
+
 	return game;
 }
 
@@ -102,7 +108,15 @@ async function getGameByFilter(condition) {
  * @returns {Object}
  */
 async function updateGame(gameId, gameData) {
-  const { genres, screenshots, ...restData } = gameData;
+	const existing = await prisma.game.findUnique({
+		where: { id: gameId },
+	});
+
+	if (!existing) {
+		errorThrower.gameNotFound(gameId);
+	}
+
+	const { genres, screenshots, ...restData } = gameData;
 
   const updateData = { ...restData };
 
@@ -132,4 +146,57 @@ async function updateGame(gameId, gameData) {
   });
 }
 
-module.exports = { getGames, getGameById, getGameByFilter, updateGame };
+/**
+ * @param {int} gameId
+ * @returns {Object}
+ */
+async function deleteGame(gameId) {
+	const existing = await prisma.game.findUnique({ where: { id: gameId } });
+
+	if (!existing) {
+		errorThrower.gameNotFound(gameId);
+	}
+
+	return await prisma.game.delete({ where: { id: gameId } });
+}
+
+/**
+ * @param {Object} gameData
+ * @returns {Object}
+ */
+async function createGame(gameData) {
+	const { genres, screenshots, ...restData } = gameData;
+
+	const genreRecords = await getGenres(genres);
+
+	if (genreRecords.length !== genres.length) {
+		errorThrower.genresNotFound(genres, genreRecords);
+	}
+
+	const genresIds = genreRecords.map((g) => ({ id: g.id }));
+
+	const createdGame = await prisma.game.create({
+		data: {
+			...restData,
+			genres: genresIds.length ? { connect: genresIds } : undefined,
+		},
+	});
+
+	if (screenshots && screenshots.length > 0) {
+		await addScreenshots(createdGame.id, screenshots);
+	}
+
+	return await prisma.game.findUnique({
+		where: { id: createdGame.id },
+		include: { genres: true, screenshots: true },
+	});
+}
+
+module.exports = {
+	getGames,
+	getGameById,
+	getGameByFilter,
+	updateGame,
+	deleteGame,
+	createGame,
+};
