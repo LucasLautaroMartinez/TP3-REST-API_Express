@@ -29,7 +29,7 @@ Frontend (React + Vite + Tailwind)
 Backend API REST (Node.js + Express)
         │
         ▼
-Prisma ORM
+Prisma ORM + Prisma PG Adapter
         │
         ▼
 PostgreSQL (Neon)
