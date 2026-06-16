@@ -1,7 +1,20 @@
 const prisma = require("../prisma/prismaClient.js");
 const errorThrower = require("../utils/errors.js");
 
-const INCLUDE_OPTIONS = { genres: true, screenshots: true };
+const { DEFAULT_LANGUAGE } = require("../const/languages.js");
+const { getTranslation, mapGameTranslation } = require("../utils/translation.js");
+
+const {
+	LIST_INCLUDE_OPTIONS,
+	DETAIL_INCLUDE_OPTIONS,
+	FILTER_INCLUDE_OPTIONS,
+	CREATE_RESPONSE_INCLUDE_OPTIONS,
+	UPDATE_RESPONSE_INCLUDE_OPTIONS
+} = require("../const/includes.js");
+
+const { normalizeGameInput, normalizeGameOutput } = require("../utils/date.js");
+
+
 
 /**
  * Funcion que devuelve registros de la tabla genres segun el nombre
@@ -15,6 +28,8 @@ async function getGenres(genres) {
 
 	return genreRecords;
 }
+
+
 
 /**
  * Funcion para añadir screenshots a un juego a partir de un array de URLs
@@ -44,50 +59,55 @@ async function addScreenshots(gameId, newUrls) {
 	return urlsToAdd;
 }
 
+
+
 /**
  * @param {int} cursor
  * @param {int} limit
  * @returns {Object} { data: Object, nextCursor: int, hasMore: boolean }
  */
-async function getGames(cursor = null, limit = 10) {
+async function getGames(cursor = null, limit = 10, lang = DEFAULT_LANGUAGE) {
 	//* Cursor es algo de prisma, sirve para que el proximo paginado empieze desde el ultimo id recuperado
 	//* la respuesta contiene nextCursor para que las peticiones en el FE se hagan con nextCursor
 	const games = await prisma.game.findMany({
 		take: limit,
 		skip: cursor ? 1 : 0,
 		cursor: cursor ? { id: cursor } : undefined,
-		include: INCLUDE_OPTIONS,
+		include: LIST_INCLUDE_OPTIONS(lang),
 		orderBy: { id: "asc" },
 	});
 
 	const nextCursor = games.length > 0 ? games[games.length - 1].id : null;
 	const hasMore = games.length === limit;
 
+	const translatedGames = games.map((game) =>
+		mapGameTranslation(game, lang)
+	);
+
 	return {
-		data: games,
+		data: normalizeGameOutput(translatedGames),
 		nextCursor,
 		hasMore,
 	};
 }
 
+
+
 /**
  * @param {int} gameId
+ * @param {string} lang
  * @returns {Object}
  */
-async function getGameById(gameId) {
-	const game = await prisma.game.findUnique({
-		where: {
-			id: gameId,
-		},
-		include: INCLUDE_OPTIONS,
-	});
+async function getGameById(gameId, lang = DEFAULT_LANGUAGE) {
 
-	if (!game) {
-		errorThrower.gameNotFound(gameId);
-	}
+	const game = await ensureGameExists(gameId, DETAIL_INCLUDE_OPTIONS(lang));
 
-	return game;
+	return normalizeGameOutput(
+		mapGameTranslation(game, lang)
+	);
 }
+
+
 
 /**
  * @param {Object} condition
@@ -96,11 +116,13 @@ async function getGameById(gameId) {
 async function getGameByFilter(condition) {
 	const gamesFiltered = await prisma.game.findMany({
 		where: condition,
-		include: INCLUDE_OPTIONS,
+		include: FILTER_INCLUDE_OPTIONS,
 	});
 
-	return gamesFiltered;
+	return normalizeGameOutput(gamesFiltered);
 }
+
+
 
 /**
  * @param {int} gameId
@@ -108,34 +130,25 @@ async function getGameByFilter(condition) {
  * @returns {Object}
  */
 async function updateGame(gameId, gameData) {
-	const existing = await prisma.game.findUnique({
-		where: { id: gameId },
-	});
 
-	if (!existing) {
-		errorThrower.gameNotFound(gameId);
-	}
+	await ensureGameExists(gameId);
 
-	const { genres, screenshots, ...restData } = gameData;
+	const normalizedGameData = normalizeGameInput(gameData);
+	const { genres, screenshots, translations, ...restData } = normalizedGameData;
 
-	const updateData = { ...restData };
+  const updateData = { ...restData };
 
-	if (genres !== undefined) {
-		// Si genres es un array de objetos con id, extraer los nombres
-		let genreNames = genres;
-		if (Array.isArray(genres) && genres.length > 0 && typeof genres[0] === 'object' && genres[0].name) {
-			genreNames = genres.map(g => g.name);
-		}
-		
-		const genreRecords = await getGenres(genreNames);
+  if (genres !== undefined) {
+    const genreRecords = await getGenres(genres);
+
 		const genresIds = genreRecords.map((g) => ({ id: g.id }));
 
-		if (genreRecords.length !== genreNames.length) {
-			return null;
-		}
+    if (genreRecords.length !== genres.length) {
+      return null;
+    }
 
-		updateData.genres = genresIds.length ? { set: [], connect: genresIds } : undefined;
-	}
+    updateData.genres = genresIds.length ? { set: [], connect: genresIds } : undefined;
+  }
 
 	await prisma.game.update({
 		where: { id: gameId },
@@ -146,57 +159,134 @@ async function updateGame(gameId, gameData) {
 		await addScreenshots(gameId, screenshots);
 	}
 
-	return await prisma.game.findUnique({
+	if (translations?.length) {
+		for (const translation of translations) {
+			await prisma.gameTranslation.upsert({
+				where: {
+					gameId_language: {
+						gameId,
+						language: translation.language,
+					},
+				},
+				create: {
+					gameId,
+					language: translation.language,
+					description: translation.description,
+				},
+				update: {
+					description: translation.description,
+				},
+			});
+		}
+	}
+
+	const updatedGame = await prisma.game.findUnique({
 		where: { id: gameId },
-		include: INCLUDE_OPTIONS,
+		include: UPDATE_RESPONSE_INCLUDE_OPTIONS,
 	});
+
+	return normalizeGameOutput(
+		mapGameTranslation(
+			updatedGame,
+			DEFAULT_LANGUAGE
+		)
+	);
 }
+
+
 
 /**
  * @param {int} gameId
  * @returns {Object}
  */
 async function deleteGame(gameId) {
-	const existing = await prisma.game.findUnique({ where: { id: gameId } });
 
-	if (!existing) {
-		errorThrower.gameNotFound(gameId);
-	}
+	await ensureGameExists(gameId);
 
 	return await prisma.game.delete({ where: { id: gameId } });
 }
+
+
 
 /**
  * @param {Object} gameData
  * @returns {Object}
  */
 async function createGame(gameData) {
-	const { genres, screenshots, ...restData } = gameData;
+
+	const normalizedGameData = normalizeGameInput(gameData);
+	const { genres, screenshots, translations, ...restData } = normalizedGameData;
 
 	const genreRecords = await getGenres(genres);
 
 	if (genreRecords.length !== genres.length) {
-		errorThrower.genresNotFound(genres, genreRecords);
+		errorThrower.genresNotFound(
+			genres,
+			genreRecords
+		);
 	}
 
-	const genresIds = genreRecords.map((g) => ({ id: g.id }));
+	const genresIds = genreRecords.map(
+		(g) => ({ id: g.id })
+	);
 
 	const createdGame = await prisma.game.create({
 		data: {
 			...restData,
-			genres: genresIds.length ? { connect: genresIds } : undefined,
+
+			genres: genresIds.length
+				? { connect: genresIds }
+				: undefined,
+
+			translations: translations?.length
+				? { create: translations }
+				: undefined,
 		},
 	});
 
-	if (screenshots && screenshots.length > 0) {
-		await addScreenshots(createdGame.id, screenshots);
+	if (
+		screenshots &&
+		screenshots.length > 0
+	) {
+		await addScreenshots(
+			createdGame.id,
+			screenshots
+		);
 	}
 
-	return await prisma.game.findUnique({
-		where: { id: createdGame.id },
-		include: { genres: true, screenshots: true },
+	const game = await prisma.game.findUnique({
+		where: {
+			id: createdGame.id,
+		},
+		include:
+			CREATE_RESPONSE_INCLUDE_OPTIONS,
 	});
+
+	return normalizeGameOutput(
+		mapGameTranslation(
+			game,
+			DEFAULT_LANGUAGE
+		)
+	);
 }
+
+
+
+async function ensureGameExists(gameId, include = undefined) {
+	const game = await prisma.game.findUnique({
+		where: { id: gameId },
+		...(include ? { include } : {}),
+	});
+
+	if (!game) {
+		errorThrower.gameNotFound(gameId);
+	}
+
+	return game;
+}
+
+
+
 
 module.exports = {
 	getGames,

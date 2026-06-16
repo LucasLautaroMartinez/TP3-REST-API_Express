@@ -5,12 +5,13 @@ async function main() {
 	console.log("Iniciando seed...");
 
 	// Limpiar datos existentes
+	await prisma.gameTranslation.deleteMany();
 	await prisma.screenshot.deleteMany();
 	await prisma.game.deleteMany();
 	await prisma.genre.deleteMany();
 
 	// Obtener géneros únicos
-	const uniqueGenres = [...new Set(games.flatMap((game) => game.Genres))];
+	const uniqueGenres = [...new Set(games.flatMap((game) => game.genres))];
 
 	// Crear géneros
 	for (const genreName of uniqueGenres) {
@@ -26,15 +27,15 @@ async function main() {
 		const createdGame = await prisma.game.create({
 			data: {
 				Name: game.Name,
-				Description: game.Description,
 				Developer: game.Developer,
 				Image: game.Image,
 				Price: parseFloat(game.Price),
 				Rating: game.Rating,
 				ReleaseDate: new Date(game.ReleaseDate),
+				isFavorite: game.isFavorite ?? false,
 
 				genres: {
-					connect: game.Genres.map((genre) => ({
+					connect: game.genres.map((genre) => ({
 						name: genre,
 					})),
 				},
@@ -42,10 +43,21 @@ async function main() {
 		});
 
 		// Crear screenshots
-		if (game.Screenshots?.length) {
+		if (game.screenshots?.length) {
 			await prisma.screenshot.createMany({
-				data: game.Screenshots.map((url) => ({
+				data: game.screenshots.map((url) => ({
 					imageUrl: url,
+					gameId: createdGame.id,
+				})),
+			});
+		}
+
+		// Crear traducciones
+		if (game.translations?.length) {
+			await prisma.gameTranslation.createMany({
+				data: game.translations.map((translation) => ({
+					language: translation.language,
+					description: translation.description,
 					gameId: createdGame.id,
 				})),
 			});

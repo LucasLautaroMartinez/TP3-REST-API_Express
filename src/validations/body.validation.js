@@ -2,11 +2,12 @@
  * Valida un body para endpoints POST y PUT
  * @param {Object} body - El objeto a validar
  * @param {Object} schema - Esquema de validación con las reglas
+ * @param {Boolean} partial - Si es true, permite actualizaciones parciales (PUT/PATCH)
  * @returns {Object} { isValid: boolean, errors: Object, message: string }
  */
 
-const validateBody = (body, schema) => {
-	// Valida que no sea objeto vacio
+const validateBody = (body, schema, partial = false) => {
+	// Valida que no sea objeto vacío
 	if (!body || typeof body !== "object" || Object.keys(body).length === 0) {
 		return {
 			isValid: false,
@@ -17,18 +18,24 @@ const validateBody = (body, schema) => {
 
 	const errors = {};
 
-	// Valida cada campo segun el esquema
+	// Valida campos no permitidos
+	for (const field of Object.keys(body)) {
+		if (!schema[field]) {
+			errors[field] = `El campo '${field}' no está permitido`;
+		}
+	}
+
+	// Valida cada campo según el esquema
 	for (const [field, rules] of Object.entries(schema)) {
 		const value = body[field];
 
-		// Valida campo obligatorio existe y que no este vacio
-		if (rules.required) {
+		// Valida campo obligatorio
+		if (rules.required && !partial) {
 			if (value === undefined || value === null) {
 				errors[field] = `El campo '${field}' es obligatorio`;
 				continue;
 			}
 
-			// Valida strings no vacios
 			if (
 				rules.type === "string" &&
 				typeof value === "string" &&
@@ -39,39 +46,133 @@ const validateBody = (body, schema) => {
 			}
 		}
 
-		// Si el campo no existe y no es obligatorio, saltar
+		// Si no existe y no es obligatorio, continuar
 		if (value === undefined || value === null) {
 			continue;
 		}
 
-		// Valida tipo numero
+		// Valida string
+		if (
+			rules.type === "string" &&
+			typeof value !== "string"
+		) {
+			errors[field] = `El campo '${field}' debe ser un string`;
+			continue;
+		}
+
+		// Valida número
 		if (rules.type === "number") {
 			const num = Number(value);
+
 			if (isNaN(num) || !isFinite(num)) {
 				errors[field] = `El campo '${field}' debe ser un número válido`;
 				continue;
 			}
 		}
 
-		// Valida tipo array
+		// Valida boolean
+		if (
+			rules.type === "boolean" &&
+			typeof value !== "boolean"
+		) {
+			errors[field] = `El campo '${field}' debe ser boolean`;
+			continue;
+		}
+
+		// Valida fecha
+		if (rules.type === "date") {
+			const date = new Date(value);
+
+			if (isNaN(date.getTime())) {
+				errors[field] = `El campo '${field}' debe ser una fecha válida`;
+				continue;
+			}
+		}
+
+		// Valida array
 		if (rules.type === "array") {
-			// Verifica que sea un array
 			if (!Array.isArray(value)) {
 				errors[field] = `El campo '${field}' debe ser un array`;
 				continue;
 			}
 
-			// Verifica que no estr vacio si es requerido
 			if (rules.required && value.length === 0) {
 				errors[field] = `El campo '${field}' no puede estar vacío`;
 				continue;
 			}
 
-			// Valida cada elemento del array contra allowedValues
-			if (rules.allowedValues && Array.isArray(rules.allowedValues)) {
-				const invalidValues = value.filter(
-					(item) => !rules.allowedValues.includes(item),
+			// Valida elementos simples
+			if (rules.itemType) {
+				const invalidItem = value.find(
+					(item) => typeof item !== rules.itemType
 				);
+
+				if (invalidItem !== undefined) {
+					errors[field] =
+						`Todos los elementos de '${field}' deben ser ${rules.itemType}`;
+					continue;
+				}
+			}
+
+			// Valida arrays de objetos
+			if (rules.itemSchema) {
+				let hasError = false;
+
+				for (const item of value) {
+					if (
+						typeof item !== "object" ||
+						item === null ||
+						Array.isArray(item)
+					) {
+						errors[field] =
+							`Todos los elementos de '${field}' deben ser objetos`;
+						hasError = true;
+						break;
+					}
+
+					for (const [key, expectedType] of Object.entries(
+						rules.itemSchema
+					)) {
+						if (!(key in item)) {
+							errors[field] =
+								`Falta la propiedad '${key}' en '${field}'`;
+							hasError = true;
+							break;
+						}
+
+						if (typeof item[key] !== expectedType) {
+							errors[field] =
+								`La propiedad '${key}' en '${field}' debe ser ${expectedType}`;
+							hasError = true;
+							break;
+						}
+
+						if (
+							expectedType === "string" &&
+							item[key].trim() === ""
+						) {
+							errors[field] =
+								`La propiedad '${key}' en '${field}' no puede estar vacía`;
+							hasError = true;
+							break;
+						}
+					}
+
+					if (hasError) break;
+				}
+
+				if (hasError) continue;
+			}
+
+			// Valida allowedValues para arrays
+			if (
+				rules.allowedValues &&
+				Array.isArray(rules.allowedValues)
+			) {
+				const invalidValues = value.filter(
+					(item) => !rules.allowedValues.includes(item)
+				);
+
 				if (invalidValues.length > 0) {
 					errors[field] =
 						`El campo '${field}' contiene valores no permitidos: ${invalidValues.join(", ")}. Valores permitidos: ${rules.allowedValues.join(", ")}`;
@@ -80,9 +181,12 @@ const validateBody = (body, schema) => {
 			}
 		}
 
-		// Valida opciones limitadas para valores que no son array
-		if (!rules.type || rules.type !== "array") {
-			if (rules.allowedValues && Array.isArray(rules.allowedValues)) {
+		// Valida allowedValues para campos simples
+		if (rules.type !== "array") {
+			if (
+				rules.allowedValues &&
+				Array.isArray(rules.allowedValues)
+			) {
 				if (!rules.allowedValues.includes(value)) {
 					errors[field] =
 						`El campo '${field}' debe ser uno de: ${rules.allowedValues.join(", ")}`;
@@ -91,9 +195,10 @@ const validateBody = (body, schema) => {
 			}
 		}
 
-		// Validacion personalizada
+		// Validación personalizada
 		if (rules.validate && typeof rules.validate === "function") {
 			const customError = rules.validate(value, body);
+
 			if (customError) {
 				errors[field] = customError;
 			}
@@ -105,71 +210,10 @@ const validateBody = (body, schema) => {
 	return {
 		isValid,
 		errors,
-		message: isValid ? "Datos válidos" : "Datos inválidos, revise los errores",
+		message: isValid
+			? "Datos válidos"
+			: "Datos inválidos, revise los errores",
 	};
 };
 
 module.exports = validateBody;
-
-// Ejemplo de un esquema que se quiera validar (games)
-
-// const gameSchema = {
-//   precio: {
-//     required: true,
-//     type: 'number',
-//     validate: (value) => {
-//       if (value < 0) return 'El precio no puede ser negativo';
-//       return null;
-//     }
-//   },
-
-//   desarrolladora: {
-//     required: true,
-//     type: 'string'
-//   },
-
-//   fechaSalida: {
-//     required: true,
-//     type: 'date',
-//     validate: (value) => {
-//       const fecha = new Date(value);
-//       if (isNaN(fecha.getTime())) return 'Fecha inválida';
-//       return null;
-//     }
-//   },
-
-//   rating: {
-//     required: true,
-//     type: 'number',
-//     min: 1,
-//     max: 5,
-//     validate: (value) => {
-//       if (value < 1 || value > 5) return 'El rating debe ser entre 1 y 5 estrellas';
-//       return null;
-//     }
-//   },
-
-//   generos: {
-//     required: true,
-//     type: 'array',
-//     allowedValues: ['Acción', 'Aventura', 'RPG', 'Estrategia', 'Deportes', 'Carreras', 'Puzzle', 'Terror', 'Simulación'],  // Opciones limitadas
-//     validate: (value) => {
-//       if (!Array.isArray(value)) return 'Los géneros deben ser un array';
-//       if (value.length === 0) return 'Debe seleccionar al menos un género';
-//       return null;
-//     }
-//   }
-// };
-
-// Uso en POST/PUT
-// const handlePostJuego = (body) => {
-//   const result = validateBody(body, gameSchema);
-
-//   if (!result.isValid) {
-//     console.log(result.message);
-//     console.log(result.errors);
-//     return;
-//   }
-
-//   Hacer fetch/post del juego...
-// };
