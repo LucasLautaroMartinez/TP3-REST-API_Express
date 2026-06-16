@@ -118,32 +118,38 @@ async function updateGame(gameId, gameData) {
 
 	const { genres, screenshots, ...restData } = gameData;
 
-  const updateData = { ...restData };
+	const updateData = { ...restData };
 
-  if (genres !== undefined) {
-    const genreRecords = await getGenres(genres);
-    const genresIds = genreRecords.map((g) => ({ id: g }));
+	if (genres !== undefined) {
+		// Si genres es un array de objetos con id, extraer los nombres
+		let genreNames = genres;
+		if (Array.isArray(genres) && genres.length > 0 && typeof genres[0] === 'object' && genres[0].name) {
+			genreNames = genres.map(g => g.name);
+		}
+		
+		const genreRecords = await getGenres(genreNames);
+		const genresIds = genreRecords.map((g) => ({ id: g.id }));
 
-    if (genreRecords.length !== genres.length) {
-      return null;
-    }
+		if (genreRecords.length !== genreNames.length) {
+			return null;
+		}
 
-    updateData.genres = genresIds.length ? { set: [], connect: genresIds } : undefined;
-  }
+		updateData.genres = genresIds.length ? { set: [], connect: genresIds } : undefined;
+	}
 
-  await prisma.game.update({
-    where: { id: gameId },
-    data: updateData,
-  });
+	await prisma.game.update({
+		where: { id: gameId },
+		data: updateData,
+	});
 
-  if (screenshots !== undefined && screenshots.length > 0) {
-    await addScreenshots(gameId, screenshots);
-  }
+	if (screenshots !== undefined && screenshots.length > 0) {
+		await addScreenshots(gameId, screenshots);
+	}
 
-  return await prisma.game.findUnique({
-    where: { id: gameId },
-    include: INCLUDE_OPTIONS,
-  });
+	return await prisma.game.findUnique({
+		where: { id: gameId },
+		include: INCLUDE_OPTIONS,
+	});
 }
 
 /**
