@@ -33,7 +33,7 @@ app.get("/api/health", (req, res) => {
 		message: "API funcionando correctamente",
 	});
 });
-app.use("/games", gameRoutes);
+app.use("/api/games", gameRoutes);
 
 app.use(errorHandler);
 
