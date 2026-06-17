@@ -32,7 +32,7 @@ async function getGames(req, res, next) {
 
 		const limit = req.query.limit
 			? parseInt(req.query.limit)
-			: 100;
+			: 20;
 
 		if (Name || Developer) {
 			return getGameByFilter(req, res, next);
