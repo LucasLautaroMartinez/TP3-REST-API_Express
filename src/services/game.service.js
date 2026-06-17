@@ -85,7 +85,7 @@ async function getGames(cursor = null, limit = 10, lang = DEFAULT_LANGUAGE) {
 	);
 
 	return {
-		data: normalizeGameOutput(translatedGames),
+		data: translatedGames.map(normalizeGameOutput),
 		nextCursor,
 		hasMore,
 	};
@@ -119,7 +119,7 @@ async function getGameByFilter(condition) {
 		include: FILTER_INCLUDE_OPTIONS,
 	});
 
-	return normalizeGameOutput(gamesFiltered);
+	return gamesFiltered.map(normalizeGameOutput);
 }
 
 
