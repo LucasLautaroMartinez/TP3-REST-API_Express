@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Game {
+  id          Int      @id @default(autoincrement())
+  Name        String
+  Rating      Int
+  Developer   String
+  Price       Float
+  ReleaseDate DateTime
+  Image       String
+  isFavorite  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  screenshots Screenshot[]
+  genres      Genre[]            @relation("GameToGenre")
+  translations GameTranslation[]
+}
+
+model GameTranslation {
+  id          Int    @id @default(autoincrement())
+  language    String
+  description String
+  gameId      Int
+  game        Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  @@unique([gameId, language])
+}
+
+model Genre {
+  id    Int    @id @default(autoincrement())
+  name  String @unique
+  games Game[] @relation("GameToGenre")
+}
+
+model Screenshot {
+  id       Int    @id @default(autoincrement())
+  imageUrl String
+  gameId   Int
+  game     Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+}

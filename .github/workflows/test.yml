@@ -1,0 +1,36 @@
+name: Verificación automática
+
+# Activadores de la verificación
+on:
+  push:
+    branches: [main, dev] # Se activa cuando se hace git push a la rama main o dev
+  pull_request:
+    branches: [main, dev] # Se activa cuando se abre un Pull Request hacia main o dev
+
+# Trabajos que tiene que realizar (pueden ser varios)
+jobs:
+  # nombre del trabajo a realizar (puede tener cualquier nombre)
+  check:
+    # Utiliza un contenedor con Ubuntu que GitHub levanta automáticamente
+    runs-on: ubuntu-latest
+
+    # Pasos a seguir dentro del contenedor
+    steps:
+      # Copia todo el código del repositorio dentro del contenedor
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      # Instala Node.js dentro del contenedor
+      - name: Instala Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22" # Versión de Node a instalar
+          cache: "npm" # Guarda cache de node_modules para que sea más rápido
+
+      # Instala las dependencias del proyecto (npm ci es como npm install pero más rápido y exacto)
+      - name: Instala dependencias del proyecto
+        run: npm ci
+
+      # Genera el cliente de Prisma a partir del schema
+      - name: Genera Prisma Client
+        run: npx prisma generate
