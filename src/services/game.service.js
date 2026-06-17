@@ -150,14 +150,14 @@ async function updateGame(gameId, gameData) {
     updateData.genres = genresIds.length ? { set: [], connect: genresIds } : undefined;
   }
 
-  await prisma.game.update({
-    where: { id: gameId },
-    data: updateData,
-  });
+	await prisma.game.update({
+		where: { id: gameId },
+		data: updateData,
+	});
 
-  if (screenshots !== undefined && screenshots.length > 0) {
-    await addScreenshots(gameId, screenshots);
-  }
+	if (screenshots !== undefined && screenshots.length > 0) {
+		await addScreenshots(gameId, screenshots);
+	}
 
 	if (translations?.length) {
 		for (const translation of translations) {
