@@ -9,7 +9,11 @@ export default defineConfig({
     path: "prisma/migrations",
     seed: "node prisma/seed.js"
   },
+
   datasource: {
-    url: process.env.DATABASE_URL,
-  },
+  url:
+    process.env.NODE_ENV === "production"
+      ? process.env.DATABASE_URL_NEON!
+      : process.env.DATABASE_URL_LOCAL!,
+},
 });
