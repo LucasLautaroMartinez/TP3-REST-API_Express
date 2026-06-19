@@ -1,0 +1,31 @@
+#? Funcionamiento básico para testear en local:
+#?
+#? - docker compose up -d (o abren Docker Desktop)
+#? - npx prisma migrate dev --name nombre_migracion
+#? - npx prisma db seed
+#? - npm run dev
+
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: postgres-games
+    restart: always
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: gamesdb
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin-games
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    depends_on:
+      - postgres
