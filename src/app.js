@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 
 const gameRoutes = require("./routes/game.routes.js");
+const userRoutes = require("./routes/user.routes.js");
 const errorHandler = require("./middlewares/errorHandler.js");
 const allowedOrigins = require("./const/allowedOrigins.js");
 
@@ -29,6 +30,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/games", gameRoutes);
+app.use("/users", userRoutes);
 
 app.use(errorHandler);
 
