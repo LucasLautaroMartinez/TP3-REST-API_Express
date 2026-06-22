@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const userService = require("../services/user.service.js");
 const validateBody = require("../validations/body.validation.js");
 const userSchema = require("../const/userSchema.js");
+const jwt = require('jsonwebtoken');
 
 async function register(req, res) {
   const body = req.body;
@@ -28,4 +29,40 @@ async function register(req, res) {
   res.status(201).json(userWithoutPassword);
 }
 
-module.exports = { register };
+async function login(req, res) {
+  try {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email y contraseña son obligatorios" });
+    }
+    
+    const user = await userService.getUserByEmail(email);
+    if (!user) {
+      return res.status(401).json({ error: "Credenciales inválidas" });
+    }
+    
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: "Credenciales inválidas" });
+    }
+    
+    const token = jwt.sign(
+      { id: user.id, email: user.email, name: user.name },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
+    
+    const { password: _, ...userWithoutPassword } = user;
+    
+    res.json({
+      token,
+      user: userWithoutPassword
+    });
+  } catch (error) {
+    console.error("Error en login:", error);
+    res.status(500).json({ error: error.message });
+  }
+}
+
+module.exports = { register, login };
