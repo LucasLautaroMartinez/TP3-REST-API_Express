@@ -30,7 +30,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/games", gameRoutes);
-app.use("/users", userRoutes);
+app.use("/auth", userRoutes);
 
 app.use(errorHandler);
 
