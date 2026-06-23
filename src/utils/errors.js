@@ -44,6 +44,13 @@ function genresNotFound(genres, genreRecords) {
 	throw error;
 }
 
+function userNotFound(userId) {
+	const error = new Error(`USER WITH ID: ${userId} NOT FOUND`);
+	error.code = "USER_NOT_FOUND";
+	error.status = 404;
+	throw error;
+}
+
 module.exports = {
 	gameNotFound,
 	invalidId,
