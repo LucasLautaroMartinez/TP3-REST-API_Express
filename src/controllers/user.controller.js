@@ -15,7 +15,7 @@ async function register(req, res) {
     
     const existingUser = await userService.getUserByEmail(body.email);
     if (existingUser) {
-      return res.status(400).json({ error: "El email ya está registrado" });
+      return res.status(409).json({ error: "El email ya está registrado" });
     }
     
     const hashedPassword = await bcrypt.hash(body.password, 10);
@@ -82,4 +82,23 @@ async function logout(req, res) {
   }
 }
 
-module.exports = { register, login, logout };
+
+async function getMe(req, res) {
+  try {
+    // req.user viene del middleware authenticateToken
+    const user = await userService.getUserById(req.user.id);
+    
+    if (!user) {
+      return res.status(404).json({ error: "Usuario no encontrado" });
+    }
+    
+    const { password, ...userWithoutPassword } = user;
+    res.json(userWithoutPassword);
+  } catch (error) {
+    console.error("Error en getMe:", error);
+    res.status(500).json({ error: error.message });
+  }
+
+}
+
+module.exports = { register, login, logout, getMe };

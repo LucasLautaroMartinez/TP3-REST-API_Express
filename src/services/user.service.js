@@ -12,4 +12,11 @@ async function createUser(data) {
   });
 }
 
-module.exports = { getUserByEmail, createUser };
+
+async function getUserById(id) {
+  return await prisma.user.findUnique({
+    where: { id }
+  });
+}
+
+module.exports = { getUserByEmail, createUser, getUserById };
