@@ -6,3 +6,5 @@ router.get(
 	//! authenticate,
 	favoriteController.getFavorites,
 );
+
+module.exports = router;
