@@ -58,4 +58,5 @@ module.exports = {
 	invalidBody,
 	rejectIdCreation,
 	genresNotFound,
+	userNotFound,
 };
