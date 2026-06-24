@@ -31,7 +31,7 @@ app.get("/api/health", (req, res) => {
 });
 
 app.use("/api/games", gameRoutes);
-app.use("/auth", userRoutes);
+app.use("/api/auth", userRoutes);
 app.use("/api/favorites", favoriteRoutes);
 
 app.use(errorHandler);
