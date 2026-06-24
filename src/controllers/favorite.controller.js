@@ -9,10 +9,10 @@ const favoriteService = require("../services/favorite.service.js");
 async function getFavorites(req, res, next) {
 	try {
 		const userId = req.userId; //? ← Sacado del JWT que está en WIP, primero se tiene que decodificar
-
+		console.log(req.userId);
 		const favorites = await favoriteService.getFavorites(userId);
-
-		res.status(200).json(favorites);
+		const gamesIds = favorites.map((fav) => fav.gameId);
+		res.status(200).json(gamesIds);
 	} catch (error) {
 		next(error);
 	}
