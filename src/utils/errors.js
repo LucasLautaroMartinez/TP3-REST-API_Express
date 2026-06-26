@@ -57,7 +57,7 @@ function existingFavorite(gameId) {
 	);
 
 	error.code = "FAVORITE_EXISTS";
-	error.status = 500;
+	error.status = 409;
 	throw error;
 }
 
