@@ -51,6 +51,16 @@ function userNotFound(userId) {
 	throw error;
 }
 
+function existingFavorite(gameId) {
+	const error = new Error(
+		`THIS USER ALREADY HAS GAME WITH ID ${gameId} IN FAVORITES`,
+	);
+
+	error.code = "FAVORITE_EXISTS";
+	error.status = 500;
+	throw error;
+}
+
 module.exports = {
 	gameNotFound,
 	invalidId,
@@ -59,4 +69,5 @@ module.exports = {
 	rejectIdCreation,
 	genresNotFound,
 	userNotFound,
+	existingFavorite,
 };
