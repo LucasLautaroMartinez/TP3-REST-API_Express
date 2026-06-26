@@ -67,9 +67,9 @@ async function addScreenshots(gameId, newUrls) {
  * @returns {Object} { data: Object, nextCursor: int, hasMore: boolean }
  */
 async function getGames(cursor = null, limit = 10, lang = DEFAULT_LANGUAGE) {
-	//* Cursor es algo de prisma, sirve para que el proximo paginado empieze desde el ultimo id recuperado
-	//* la respuesta contiene nextCursor para que las peticiones en el FE se hagan con nextCursor
-	const games = await prisma.game.findMany({
+    //* Cursor es algo de prisma, sirve para que el proximo paginado empieze desde el ultimo id recuperado
+    //* la respuesta contiene nextCursor para que las peticiones en el FE se hagan con nextCursor
+    const games = await prisma.game.findMany({
 		take: limit,
 		skip: cursor ? 1 : 0,
 		cursor: cursor ? { id: cursor } : undefined,
@@ -80,12 +80,13 @@ async function getGames(cursor = null, limit = 10, lang = DEFAULT_LANGUAGE) {
 	const nextCursor = games.length > 0 ? games[games.length - 1].id : null;
 	const hasMore = games.length === limit;
 
-	const translatedGames = games.map((game) =>
-		mapGameTranslation(game, lang)
-	);
+	// Un solo map combinando traduccion y normalización
+	const data = games.map(game => normalizeGameOutput(mapGameTranslation(game, lang)));
+
+    const end = Date.now();
 
 	return {
-		data: translatedGames.map(normalizeGameOutput),
+		data,
 		nextCursor,
 		hasMore,
 	};
