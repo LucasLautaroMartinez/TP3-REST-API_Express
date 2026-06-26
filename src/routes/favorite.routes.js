@@ -4,5 +4,6 @@ const authenticateToken = require("../middlewares/auth.middleware.js");
 
 router.get("/", authenticateToken, favoriteController.getFavorites);
 router.post("/:id", authenticateToken, favoriteController.addFavorite);
+router.delete("/:id", authenticateToken, favoriteController.deleteFavorite);
 
 module.exports = router;

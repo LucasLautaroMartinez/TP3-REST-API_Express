@@ -21,7 +21,7 @@ async function getFavorites(userId) {
  * Añade un favorito según ID de juego e ID de usuario
  * @param {Int} gameId - ID del juego a añadir
  * @param {Int} userId - ID del usuario autenticado
- * @returns {Promise<Object>}
+ * @returns {Promise<Object>} - Favorito añadido
  * @throws {Error} - Si hay error en BD, si ya existe el favorito o si no existe el juego
  */
 async function addFavorite(gameId, userId) {
@@ -53,4 +53,31 @@ async function addFavorite(gameId, userId) {
 	return addedFavorite;
 }
 
-module.exports = { getFavorites, addFavorite };
+/**
+ * Borra un favorito según gameId y userId
+ * @param {Int} gameId - ID del juego a añadir
+ * @param {Int} userId - ID del usuario autenticado
+ * @returns {Promise<Object>} - Favorito eliminado
+ * @throws {Error} - Si hay error en BD o si no existe el registro de favorito
+ */
+async function deleteFavorite(gameId, userId) {
+	const existing = await prisma.favorite.findUnique({
+		where: {
+			userId_gameId: { userId, gameId },
+		},
+	});
+
+	if (!existing) {
+		errorThrower.favoriteNotFound();
+	}
+
+	const deletedFavorite = await prisma.favorite.delete({
+		where: {
+			userId_gameId: { userId, gameId },
+		},
+	});
+
+	return deletedFavorite;
+}
+
+module.exports = { getFavorites, addFavorite, deleteFavorite };

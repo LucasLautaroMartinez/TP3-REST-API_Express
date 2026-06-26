@@ -61,6 +61,13 @@ function existingFavorite(gameId) {
 	throw error;
 }
 
+function favoriteNotFound() {
+	const error = new Error(`FAVORITE RELATION NOT FOUND`);
+	error.code = "FAVORITE_NOT_FOUND";
+	error.status = 404;
+	throw error;
+}
+
 module.exports = {
 	gameNotFound,
 	invalidId,
@@ -70,4 +77,5 @@ module.exports = {
 	genresNotFound,
 	userNotFound,
 	existingFavorite,
+	favoriteNotFound,
 };
