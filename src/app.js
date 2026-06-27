@@ -42,11 +42,24 @@ const swaggerOptions = {
 		info: {
 			title: "Games API",
 			version: "1.0.0",
-			description: "API para gestionar juegos",
 		},
 		servers: [
 			{
-				url: `http://localhost:${PORT}`,
+				url: `http://localhost:${PORT}/api`,
+			},
+		],
+		components: {
+			securitySchemes: {
+				bearerAuth: {
+					type: "http",
+					scheme: "bearer",
+					bearerFormat: "JWT",
+				},
+			},
+		},
+		security: [
+			{
+				bearerAuth: [],
 			},
 		],
 	},
