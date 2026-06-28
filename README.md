@@ -232,3 +232,7 @@ Servidor disponible en:
 ## Deploy
 
 Base de datos PostgreSQL hosteada en **Neon**.
+
+## Frontend
+
+Se puede ver mas información sobre el frontend en: [https://github.com/LautaroLaraFai/TP2-REACT](https://github.com/LautaroLaraFai/TP2-REACT)
