@@ -179,6 +179,20 @@ DATABASE_URL="postgresql://..."
 PORT=3000
 ```
 
+Ademas, se tendrá que definir donde está ubicado el frontend
+
+### Local
+
+```env
+FRONTEND_URL="http://localhost:5173"
+```
+
+### Deploy
+
+```env
+FRONTEND_URL="https://tp-2-react-nine.vercel.app/"
+```
+
 **4. Ejecutar migraciones**
 
 ```bash
