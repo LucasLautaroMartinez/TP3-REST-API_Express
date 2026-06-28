@@ -42,7 +42,7 @@ async function addFavorite(req, res, next) {
 }
 
 /**
- * Añade favoritos a un usuario autenticado
+ * Borra favorito a un usuario autenticado
  * @param {Object} req - Request de Express
  * @param {Object} res - Response de Express
  * @param {Function} next - Middleware de error

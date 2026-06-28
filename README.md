@@ -1,26 +1,20 @@
-# Visualizador de Juegos - API REST + Frontend React
+# Visualizador de Juegos — API REST
+
+> Aplicación web fullstack desarrollada como continuación del TP de React. Consiste en un visualizador de videojuegos que permite consultar información mediante una API REST propia desarrollada con Node.js, Express, Prisma ORM y PostgreSQL.
+
+---
 
 ## Miembros del Grupo
 
-| Nombre         | Email                                                                                       | Rol                         |
-| -------------- | ------------------------------------------------------------------------------------------- | --------------------------- |
-| Marcos Chavez  | [marcos.chavez@est.fi.uncoma.edu.ar](mailto:marcos.chavez@est.fi.uncoma.edu.ar)             | Desarrollador Backend       |
-| Lucas Martinez | [lucas.martinez@est.fi.uncoma.edu.ar](mailto:lucas.martinez@est.fi.uncoma.edu.ar)           | Project Manager / Developer |
-| Lautaro Lara   | [lautaronicolas.lara@est.fi.uncoma.edu.ar](mailto:lautaronicolas.lara@est.fi.uncoma.edu.ar) | Desarrollador Frontend      |
+| Nombre         | Email                                      | Rol                         |
+| -------------- | ------------------------------------------ | --------------------------- |
+| Marcos Chavez  | <marcos.chavez@est.fi.uncoma.edu.ar>       | Desarrollador Backend       |
+| Lucas Martinez | <lucas.martinez@est.fi.uncoma.edu.ar>      | Project Manager / Developer |
+| Lautaro Lara   | <lautaronicolas.lara@est.fi.uncoma.edu.ar> | Desarrollador Frontend      |
 
 ---
 
-# Descripcion del Proyecto
-
-Aplicacion web fullstack desarrollada como continuacion del TP de React.
-
-El proyecto consiste en un visualizador de videojuegos que permite consultar informacion mediante una API REST propia desarrollada con Node.js, Express, Prisma ORM y PostgreSQL.
-
-El frontend consume la API para mostrar videojuegos mediante scroll infinito, busquedas y vistas detalladas.
-
----
-
-# Arquitectura del Proyecto
+## Arquitectura del Proyecto
 
 ```txt
 Frontend (React + Vite + Tailwind)
@@ -37,77 +31,66 @@ PostgreSQL (Neon)
 
 ---
 
-# Funcionalidades Principales
+## Funcionalidades Principales
 
-## Frontend
-
-* Visualizacion de videojuegos
-* Infinite Scroll
-* Busqueda por nombre
-* Vista detallada de videojuegos
-* Responsive Design
-* Consumo de API REST propia
-
-## Backend
-
-* API RESTful
-* CRUD completo de videojuegos
-* Persistencia de datos en PostgreSQL
-* Validaciones manuales
-* Manejo de errores
-* Migraciones con Prisma ORM
-* Variables de entorno mediante dotenv
+- API RESTful
+- CRUD completo de videojuegos
+- Persistencia de datos en PostgreSQL
+- Validaciones manuales
+- Manejo de errores
+- Migraciones con Prisma ORM
+- Variables de entorno mediante dotenv
+- Descripción de juegos en español, ingles y lengua negra
 
 ---
 
-# Tecnologias Utilizadas
+## Tecnologías Utilizadas
 
-## Frontend
-
-| Tecnologia      | Descripcion                     |
-| --------------- | ------------------------------- |
-| React           | Libreria principal              |
-| Vite            | Bundler y entorno de desarrollo |
-| Tailwind CSS    | Estilizado responsive           |
-| React Router    | Navegacion entre paginas        |
-| Infinite Scroll | Carga dinamica de juegos        |
-| Vercel          | Deploy del frontend             |
-
-## Backend
-
-| Tecnologia | Descripcion              |
-| ---------- | ------------------------ |
-| Node.js    | Entorno de ejecucion     |
-| Express.js | Framework backend        |
-| Prisma ORM | ORM para PostgreSQL      |
-| PostgreSQL | Base de datos relacional |
-| Neon       | Hosting de PostgreSQL    |
-| dotenv     | Variables de entorno     |
-| cors       | Manejo de CORS           |
-| nodemon    | Desarrollo backend       |
+| Tecnología   | Descripción                |
+| ------------ | -------------------------- |
+| Node.js      | Entorno de ejecución       |
+| Express.js   | Framework backend          |
+| Prisma ORM   | ORM para PostgreSQL        |
+| PostgreSQL   | Base de datos relacional   |
+| Neon         | Hosting de PostgreSQL      |
+| dotenv       | Variables de entorno       |
+| cors         | Manejo de CORS             |
+| nodemon      | Desarrollo backend         |
+| jsonwebtoken | Manejo de token de usuario |
+| bcrypt       | Encriptación               |
+| Swagger      | Documentación de endpoints |
 
 ---
 
-# Modelo de Datos
+## Modelo de Datos
 
-## Entidad Principal: Game
+### Entidad Principal: Game
 
-| Campo       | Tipo     |
-| ----------- | -------- |
-| id          | Int      |
-| title       | String   |
-| rating      | Float    |
-| imageUrl    | String   |
-| releaseDate | DateTime |
-| genre       | String   |
-| developer   | String   |
-| price       | Float    |
+| Campo       | Tipo     | Descripción                |
+| ----------- | -------- | -------------------------- |
+| id          | Int      | ID autoincremental         |
+| Name        | String   | Nombre del juego           |
+| Rating      | Int      | Puntuación (1-5)           |
+| Developer   | String   | Desarrolladora             |
+| Price       | Float    | Precio en USD              |
+| ReleaseDate | DateTime | Fecha de lanzamiento       |
+| Image       | String   | URL de la imagen principal |
+| Description | String   | Descripción del juego      |
+| createdAt   | DateTime | Fecha de creación          |
+| updatedAt   | DateTime | Fecha de actualización     |
 
 ---
 
-# Endpoints de la API
+## Endpoints de la API
 
-| Metodo | Endpoint       | Descripcion              |
+La aplicación contiene documentación de los endpoints hecha con Swagger, disponible de dos formas:
+
+- **Local:** `http://localhost:PUERTO/api-docs`
+- **Deploy (recomendado):** [https://tp-3-rest-api-express-7afz.vercel.app/api-docs](https://tp-3-rest-api-express-7afz.vercel.app/api-docs)
+
+### Game
+
+| Método | Endpoint       | Descripción              |
 | ------ | -------------- | ------------------------ |
 | GET    | /api/games     | Obtener todos los juegos |
 | GET    | /api/games/:id | Obtener juego por ID     |
@@ -115,89 +98,106 @@ PostgreSQL (Neon)
 | PUT    | /api/games/:id | Actualizar juego         |
 | DELETE | /api/games/:id | Eliminar juego           |
 
+### Favorites
+
+| Método | Endpoint           | Descripción                         |
+| ------ | ------------------ | ----------------------------------- |
+| GET    | /api/favorites     | Obtener todos los favoritos         |
+| POST   | /api/favorites/:id | Añadir favorito por ID de juego     |
+| DELETE | /api/favorites/:id | Eliminar favorito según ID de juego |
+
+### User
+
+| Método | Endpoint           | Descripción                     |
+| ------ | ------------------ | ------------------------------- |
+| POST   | /api/auth/login    | Inicia sesión                   |
+| POST   | /api/auth/register | Registra un usuario             |
+| POST   | /api/auth/logout   | Cierra sesión                   |
+| GET    | /api/auth/me       | Obtiene información del usuario |
+| GET    | /api/auth/profile  | Obtiene información del perfil  |
+
 ---
 
-# Estructura del Proyecto
+## Estructura del Proyecto
 
 ```txt
-backend/
-│
-├── prisma/
-│   ├── migrations/
+TP3-REST-API_EXPRESS/
+├── docker-compose.yml
+├── package.json
+├── package-lock.json
+├── prisma
+│   ├── data
+│   ├── migrations
 │   ├── schema.prisma
 │   └── seed.js
-│
-├── src/
-│   ├── controllers/
-│   ├── middlewares/
-│   ├── prisma/
-│   ├── routes/
-│   ├── services/
-│   ├── validations/
+├── prisma.config.ts
+├── README.md
+├── src
 │   ├── app.js
-│   └── index.js
-│
-├── .env
-├── package.json
-└── README.md
+│   ├── const
+│   ├── controllers
+│   ├── index.js
+│   ├── middlewares
+│   ├── prisma
+│   ├── routes
+│   ├── services
+│   ├── utils
+│   └── validations
+└── vercel.json
 ```
 
 ---
 
-# Instalacion del Proyecto
+## Instalación del Proyecto
 
-## Requisitos Previos
+### Requisitos Previos
 
-* Node.js v18 o superior
-* npm
-* Cuenta en Neon
+- Node.js v18 o superior
+- npm
+- Cuenta en Neon
 
----
+### Pasos
 
-# Clonar el repositorio
+**1. Entrar al directorio del proyecto**
 
 ```bash
-git clone https://github.com/LautaroLaraFai/TP2-REACT
+cd TP3-REST-API_EXPRESS
 ```
 
----
-
-# Backend
-
-## Entrar al directorio backend
-
-```bash
-cd backend
-```
-
-## Instalar dependencias
+**2. Instalar dependencias**
 
 ```bash
 npm install
 ```
 
-## Configurar variables de entorno
+**3. Configurar variables de entorno**
 
-Crear archivo `.env`
+Crear archivo `.env`:
 
 ```env
 DATABASE_URL="postgresql://..."
 PORT=3000
 ```
 
-## Ejecutar migraciones
+**4. Ejecutar migraciones**
 
 ```bash
 npx prisma migrate dev
 ```
 
-## Generar cliente Prisma
+**5. Generar cliente Prisma**
 
 ```bash
 npx prisma generate
 ```
 
-## Iniciar servidor
+**6. Generar seed** _(opcional)_
+
+```bash
+npx prisma db seed
+```
+
+**7. Iniciar servidor**
 
 ```bash
 npm run dev
@@ -205,67 +205,30 @@ npm run dev
 
 Servidor disponible en:
 
-```txt
-http://localhost:3000
-```
+- **Local:** `http://localhost:3000`
+- **Deploy:** `https://tp-3-rest-api-express-7afz.vercel.app`
 
 ---
 
-# Frontend
+## Variables de Entorno
 
-## Entrar al directorio frontend
-
-```bash
-cd frontend
-```
-
-## Instalar dependencias
-
-```bash
-npm install
-```
-
-## Iniciar aplicacion
-
-```bash
-npm run dev
-```
-
-Frontend disponible en:
-
-```txt
-http://localhost:5173
-```
-
----
-
-# Variables de Entorno
-
-## Backend
-
-| Variable     | Descripcion              |
+| Variable     | Descripción              |
 | ------------ | ------------------------ |
-| DATABASE_URL | Conexion PostgreSQL Neon |
+| DATABASE_URL | Conexión PostgreSQL Neon |
 | PORT         | Puerto del servidor      |
 
 ---
 
-# Decisiones Tecnicas Importantes
+## Decisiones Técnicas Importantes
 
-* Se utilizo Prisma ORM para simplificar la comunicacion con PostgreSQL.
-* Se eligio Neon como proveedor cloud para PostgreSQL por su facilidad de integracion y plan gratuito.
-* Se mantuvo una arquitectura modular separando rutas, controladores, servicios y validaciones.
-* Las validaciones fueron implementadas manualmente segun requerimientos de la catedra.
-* El frontend fue adaptado para consumir una API REST propia en lugar de datos mockeados.
+- Se utilizó **Prisma ORM** para simplificar la comunicación con PostgreSQL.
+- Se eligió **Neon** como proveedor cloud para PostgreSQL por su facilidad de integración y plan gratuito.
+- Se mantuvo una **arquitectura modular** separando rutas, controladores, servicios y validaciones.
+- Las validaciones fueron implementadas manualmente según requerimientos de la cátedra.
+- El frontend fue adaptado para consumir una API REST propia en lugar de datos mockeados.
 
 ---
 
-# Deploy
+## Deploy
 
-## Frontend
-
-Deploy realizado mediante Vercel.
-
-## Base de Datos
-
-Base de datos PostgreSQL hosteada en Neon.
+Base de datos PostgreSQL hosteada en **Neon**.

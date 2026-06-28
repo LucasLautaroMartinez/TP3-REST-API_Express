@@ -47,6 +47,9 @@ const swaggerOptions = {
 			{
 				url: `http://localhost:${PORT}/api`,
 			},
+			{
+				url: `https://tp-3-rest-api-express-7afz.vercel.app/api`,
+			},
 		],
 		components: {
 			securitySchemes: {
