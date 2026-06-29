@@ -31,7 +31,10 @@ app.get("/api/health", (req, res) => {
 });
 
 // Swagger
-
+app.use((req, res, next) => {
+    console.log(req.method, req.originalUrl);
+    next();
+});
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const isDev = process.env.NODE_ENV !== "production";
