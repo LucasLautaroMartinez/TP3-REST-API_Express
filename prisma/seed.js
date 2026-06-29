@@ -5,10 +5,14 @@ async function main() {
 	console.log("Iniciando seed...");
 
 	// Limpiar datos existentes
+	await prisma.favorite.deleteMany();
+	await prisma.user.deleteMany();
 	await prisma.gameTranslation.deleteMany();
 	await prisma.screenshot.deleteMany();
 	await prisma.game.deleteMany();
 	await prisma.genre.deleteMany();
+
+	console.log("→ Datos previos eliminados.");
 
 	// Obtener géneros únicos
 	const uniqueGenres = [...new Set(games.flatMap((game) => game.genres))];
@@ -21,8 +25,10 @@ async function main() {
 			},
 		});
 	}
-
+	console.log("→ Géneros cargados.");
+	
 	// Crear juegos
+	console.log("→ Cargando juegos...")
 	for (const game of games) {
 		const createdGame = await prisma.game.create({
 			data: {
@@ -32,7 +38,6 @@ async function main() {
 				Price: parseFloat(game.Price),
 				Rating: game.Rating,
 				ReleaseDate: new Date(game.ReleaseDate),
-				isFavorite: game.isFavorite ?? false,
 
 				genres: {
 					connect: game.genres.map((genre) => ({
@@ -63,12 +68,14 @@ async function main() {
 			});
 		}
 	}
+	console.log(`→ Juegos cargados: ${games.length}`)
 
-	console.log(`Seed completado. Juegos cargados: ${games.length}`);
+	console.log("Seed completado.");
 }
 
 main()
 	.catch((error) => {
+		console.error("Error ejecutando seed:");
 		console.error(error);
 		process.exit(1);
 	})

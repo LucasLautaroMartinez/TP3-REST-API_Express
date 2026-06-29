@@ -44,6 +44,30 @@ function genresNotFound(genres, genreRecords) {
 	throw error;
 }
 
+function userNotFound(userId) {
+	const error = new Error(`USER WITH ID: ${userId} NOT FOUND`);
+	error.code = "USER_NOT_FOUND";
+	error.status = 404;
+	throw error;
+}
+
+function existingFavorite(gameId) {
+	const error = new Error(
+		`THIS USER ALREADY HAS GAME WITH ID ${gameId} IN FAVORITES`,
+	);
+
+	error.code = "FAVORITE_EXISTS";
+	error.status = 409;
+	throw error;
+}
+
+function favoriteNotFound() {
+	const error = new Error(`FAVORITE RELATION NOT FOUND`);
+	error.code = "FAVORITE_NOT_FOUND";
+	error.status = 404;
+	throw error;
+}
+
 module.exports = {
 	gameNotFound,
 	invalidId,
@@ -51,4 +75,7 @@ module.exports = {
 	invalidBody,
 	rejectIdCreation,
 	genresNotFound,
+	userNotFound,
+	existingFavorite,
+	favoriteNotFound,
 };
