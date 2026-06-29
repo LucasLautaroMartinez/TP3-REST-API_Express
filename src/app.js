@@ -32,9 +32,10 @@ app.get("/api/health", (req, res) => {
 
 // Swagger
 
-const PORT = process.env.PORT || 3000;
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
+const isDev = process.env.NODE_ENV !== "production";
+const BASE_URL = process.env.API_BASE_URL || (isDev ? "http://localhost:3000" : "");
 
 const swaggerOptions = {
 	definition: {
@@ -45,10 +46,7 @@ const swaggerOptions = {
 		},
 		servers: [
 			{
-				url: `http://localhost:${PORT}/api`,
-			},
-			{
-				url: `https://tp-3-rest-api-express-7afz.vercel.app/api`,
+				url: `${BASE_URL}/api`,
 			},
 		],
 		components: {
