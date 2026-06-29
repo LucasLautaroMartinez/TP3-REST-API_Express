@@ -9,23 +9,6 @@ const allowedOrigins = require("./const/allowedOrigins.js");
 
 const app = express();
 
-const swaggerUi = require("swagger-ui-express");
-const swaggerUiDist = require("swagger-ui-dist");
-
-app.use(
-    "/swagger-assets",
-    express.static(swaggerUiDist.getAbsoluteFSPath())
-);
-
-app.get("/test-swagger", (req, res) => {
-    res.sendFile(
-        require("path").join(
-            swaggerUiDist.getAbsoluteFSPath(),
-            "swagger-ui-bundle.js"
-        )
-    );
-});
-
 app.use(
 	cors({
 		origin: (origin, callback) => {
@@ -48,10 +31,7 @@ app.get("/api/health", (req, res) => {
 });
 
 // Swagger
-app.use((req, res, next) => {
-    console.log(req.method, req.originalUrl);
-    next();
-});
+
 const swaggerJsdoc = require("swagger-jsdoc");
 const swaggerUi = require("swagger-ui-express");
 const isDev = process.env.NODE_ENV !== "production";
@@ -88,7 +68,7 @@ const swaggerOptions = {
 };
 
 const swaggerSpec = swaggerJsdoc(swaggerOptions);
-app.use("/api-docs", swaggerUi.serveFiles(swaggerSpec), swaggerUi.setup(swaggerSpec));
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use("/api/games", gameRoutes);
 app.use("/api/auth", userRoutes);
