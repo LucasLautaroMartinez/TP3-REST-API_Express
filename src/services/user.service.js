@@ -12,11 +12,45 @@ async function createUser(data) {
   });
 }
 
-
 async function getUserById(id) {
   return await prisma.user.findUnique({
     where: { id }
   });
 }
 
-module.exports = { getUserByEmail, createUser, getUserById };
+async function createRefreshToken(data) {
+  return await prisma.refreshToken.create({
+    data
+  });
+}
+
+async function getRefreshToken(token) {
+  return await prisma.refreshToken.findUnique({
+    where: { token },
+    include: {
+      user: true
+    }
+  });
+}
+
+async function deleteRefreshToken(token) {
+  return await prisma.refreshToken.deleteMany({
+    where: { token }
+  });
+}
+
+async function deleteUserRefreshTokens(userId) {
+  return await prisma.refreshToken.deleteMany({
+    where: { userId }
+  });
+}
+
+module.exports = {
+  getUserByEmail,
+  createUser,
+  getUserById,
+  createRefreshToken,
+  getRefreshToken,
+  deleteRefreshToken,
+  deleteUserRefreshTokens
+};

@@ -56,6 +56,8 @@ const authenticateToken = require("../middlewares/auth.middleware.js");
  *         description: Datos inválidos
  *       409:
  *         description: Email ya registrado
+ *       500:
+ *         description: Error interno del servidor
  */
 router.post("/register", userController.register);
 
@@ -91,7 +93,10 @@ router.post("/register", userController.register);
  *             schema:
  *               type: object
  *               properties:
- *                 token:
+ *                 accessToken:
+ *                   type: string
+ *                   example: "eyJhbGciOiJIUzI1NiIs..."
+ *                 refreshToken:
  *                   type: string
  *                   example: "eyJhbGciOiJIUzI1NiIs..."
  *                 user:
@@ -115,22 +120,70 @@ router.post("/register", userController.register);
  *         description: Faltan email o password
  *       401:
  *         description: Credenciales inválidas
+ *       500:
+ *         description: Error interno del servidor
  */
 router.post("/login", userController.login);
 
 /**
  * @swagger
- * /auth/logout:
+ * /auth/refresh:
  *   post:
- *     summary: Cerrar sesión
+ *     summary: Obtener un nuevo access token utilizando un refresh token válido
  *     tags: [Auth]
- *     security:
- *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - refreshToken
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 example: "eyJhbGciOiJIUzI1NiIs..."
  *     responses:
  *       200:
- *         description: Sesión cerrada exitosamente
- *       401:
- *         description: No autorizado
+ *         description: Nuevo access token generado exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                   example: "eyJhbGciOiJIUzI1NiIs..."
+ *       400:
+ *         description: Refresh token requerido
+ *       403:
+ *         description: Refresh token inválido o expirado
+ *       500:
+ *         description: Error interno del servidor
+ */
+router.post("/refresh", userController.refresh);
+
+/**
+ * @swagger
+ * /auth/logout:
+ *   post:
+ *     summary: Cerrar sesión e invalidar el refresh token si existe
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               refreshToken:
+ *                 type: string
+ *                 example: "eyJhbGciOiJIUzI1NiIs..."
+ *     responses:
+ *       200:
+ *         description: Sesión cerrada correctamente
+ *       500:
+ *         description: Error interno del servidor
  */
 router.post("/logout", userController.logout);
 
@@ -163,9 +216,13 @@ router.post("/logout", userController.logout);
  *                   type: string
  *                   format: date-time
  *       401:
- *         description: No autorizado
+ *         description: Token no proporcionado o token expirado
+ *       403:
+ *         description: Token inválido
  *       404:
  *         description: Usuario no encontrado
+ *       500:
+ *         description: Error interno del servidor
  */
 router.get("/me", authenticateToken, userController.getMe);
 
@@ -194,22 +251,12 @@ router.get("/me", authenticateToken, userController.getMe);
  *                     id:
  *                       type: integer
  *                       example: 1
- *                     email:
- *                       type: string
- *                       example: "user@test.com"
- *                     name:
- *                       type: string
- *                       example: "Usuario"
- *                     iat:
- *                       type: integer
- *                       description: "Timestamp de emisión del token"
- *                       example: 1782572597
- *                     exp:
- *                       type: integer
- *                       description: "Timestamp de expiración del token"
- *                       example: 1783177397
  *       401:
  *         description: No autorizado
+ *       403:
+ *         description: Token inválido
+ *       500:
+ *         description: Error interno del servidor
  */
 router.get("/profile", authenticateToken, (req, res) => {
 	res.json({

@@ -52,16 +52,31 @@ async function login(req, res) {
       return res.status(401).json({ error: "Credenciales inválidas" });
     }
     
-    const token = jwt.sign(
-      { id: user.id, email: user.email, name: user.name },
+    const accessToken = jwt.sign(
+      { id: user.id },
       process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { expiresIn: "15m" }
     );
-    
+
+    const refreshToken = jwt.sign(
+      { id: user.id },
+      process.env.JWT_REFRESH_SECRET,
+      { expiresIn: "7d" }
+    );
+
     const { password: _, ...userWithoutPassword } = user;
+
+    await userService.createRefreshToken({
+      token: refreshToken,
+      userId: user.id,
+      expiresAt: new Date(
+        Date.now() + 7 * 24 * 60 * 60 * 1000 // en 7 días
+      )
+    });
     
     res.json({
-      token,
+      accessToken,
+      refreshToken,
       user: userWithoutPassword
     });
   } catch (error) {
@@ -72,16 +87,24 @@ async function login(req, res) {
 
 async function logout(req, res) {
   try {
+    const { refreshToken } = req.body;
+
+    if (refreshToken) {
+      await userService.deleteRefreshToken(
+        refreshToken
+      );
+    }
+
     res.json({
-      message: "Sesión cerrada exitosamente",
-      logout: true
+      message: "Sesión cerrada correctamente"
     });
+
   } catch (error) {
-    console.error("Error en logout:", error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({
+      error: error.message
+    });
   }
 }
-
 
 async function getMe(req, res) {
   try {
@@ -101,4 +124,63 @@ async function getMe(req, res) {
 
 }
 
-module.exports = { register, login, logout, getMe };
+async function refresh(req, res) {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(400).json({ error: "Refresh token requerido" });
+    }
+
+    const storedToken = await userService.getRefreshToken(refreshToken);
+
+    if (!storedToken) {
+      return res.status(403).json({ error: "Refresh token inválido" });
+    }
+
+    if (storedToken.expiresAt < new Date()) {
+      await userService.deleteRefreshToken(refreshToken);
+
+      return res.status(403).json({ error: "Refresh token expirado" });
+    }
+
+    try {
+      jwt.verify(
+        refreshToken,
+        process.env.JWT_REFRESH_SECRET
+      );
+    } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        await userService.deleteRefreshToken(refreshToken);
+
+        return res.status(403).json({
+          error: "Refresh token expirado"
+        });
+      }
+
+      return res.status(403).json({
+        error: "Refresh token inválido"
+      });
+    }
+
+    const accessToken = jwt.sign(
+      {
+        id: storedToken.user.id
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "15m"
+      }
+    );
+
+    res.json({
+      accessToken
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Error interno del servidor" });
+  }
+}
+
+module.exports = { register, login, logout, getMe, refresh };
