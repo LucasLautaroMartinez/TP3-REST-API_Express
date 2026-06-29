@@ -9,6 +9,23 @@ const allowedOrigins = require("./const/allowedOrigins.js");
 
 const app = express();
 
+const swaggerUi = require("swagger-ui-express");
+const swaggerUiDist = require("swagger-ui-dist");
+
+app.use(
+    "/swagger-assets",
+    express.static(swaggerUiDist.getAbsoluteFSPath())
+);
+
+app.get("/test-swagger", (req, res) => {
+    res.sendFile(
+        require("path").join(
+            swaggerUiDist.getAbsoluteFSPath(),
+            "swagger-ui-bundle.js"
+        )
+    );
+});
+
 app.use(
 	cors({
 		origin: (origin, callback) => {
