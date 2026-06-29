@@ -70,36 +70,6 @@ async function main() {
 	}
 	console.log(`→ Juegos cargados: ${games.length}`)
 
-	// Crear usuarios de prueba
-	const testUser = await prisma.user.create({
-		data: {
-			name: "Usuario",
-			email: "user@test.com",
-			password: "userContrasenia",
-		},
-	});
-	console.log("→ Usuario de prueba creado.");
-
-
-	// Crear algunos favoritos de ejemplo
-	const firstGames = await prisma.game.findMany({
-		take: 3,
-		orderBy: {
-			id: "asc",
-		},
-	});
-
-	for (const game of firstGames) {
-		await prisma.favorite.create({
-			data: {
-				userId: testUser.id,
-				gameId: game.id,
-			},
-		});
-	}
-	console.log("→ Favoritos de ejemplo cargados.");
-
-
 	console.log("Seed completado.");
 }
 

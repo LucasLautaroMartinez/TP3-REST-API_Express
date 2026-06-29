@@ -32,6 +32,7 @@ model User {
   updatedAt  DateTime @updatedAt
 
   favorites  Favorite[]
+  refreshTokens RefreshToken[]
 }
 
 model Favorite {
@@ -66,4 +67,14 @@ model Screenshot {
   imageUrl String
   gameId   Int
   game     Game   @relation(fields: [gameId], references: [id], onDelete: Cascade)
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
